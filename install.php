@@ -1,7 +1,7 @@
 <?php
 // install.php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+die("Hệ thống đã được cài đặt thành công. Trang cài đặt đã bị vô hiệu hóa vì lý do bảo mật.");
+
 
 $installed = false;
 $error = '';
