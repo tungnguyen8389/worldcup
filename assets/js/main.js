@@ -575,11 +575,18 @@ window.exportToPDF = function(elementId, filename) {
         return;
     }
     
+    // Lưu lại vị trí ban đầu trong DOM để khôi phục sau
+    const originalParent = element.parentNode;
+    const originalNextSibling = element.nextSibling;
+    
+    // Đưa element ra ngoài body để tránh ảnh hưởng bởi layout flex/relative/grid của container cha
+    document.body.appendChild(element);
+    
     // Thêm class tạm thời để tối ưu hóa hiển thị khi xuất PDF
     element.classList.add('pdf-exporting');
     
     const opt = {
-        margin:       [15, 15, 15, 15],
+        margin:       0,
         filename:     filename + '.pdf',
         image:        { type: 'jpeg', quality: 0.98 },
         html2canvas:  { 
@@ -593,12 +600,26 @@ window.exportToPDF = function(elementId, filename) {
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
     
-    // Thực hiện xuất PDF
-    html2pdf().set(opt).from(element).save().then(() => {
-        element.classList.remove('pdf-exporting');
-    }).catch(err => {
-        console.error('Lỗi xuất PDF:', err);
-        alert('Có lỗi xảy ra khi xuất PDF!');
-        element.classList.remove('pdf-exporting');
-    });
+    // Đợi 150ms để trình duyệt hoàn tất việc render lại CSS (display: block)
+    setTimeout(() => {
+        html2pdf().set(opt).from(element).save().then(() => {
+            element.classList.remove('pdf-exporting');
+            // Khôi phục lại vị trí cũ trong DOM
+            if (originalNextSibling) {
+                originalParent.insertBefore(element, originalNextSibling);
+            } else {
+                originalParent.appendChild(element);
+            }
+        }).catch(err => {
+            console.error('Lỗi xuất PDF:', err);
+            alert('Có lỗi xảy ra khi xuất PDF!');
+            element.classList.remove('pdf-exporting');
+            // Khôi phục lại vị trí cũ trong DOM
+            if (originalNextSibling) {
+                originalParent.insertBefore(element, originalNextSibling);
+            } else {
+                originalParent.appendChild(element);
+            }
+        });
+    }, 150);
 };

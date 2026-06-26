@@ -41,6 +41,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     $stmt_up_preds->execute([$id, $original_id]);
                 }
                 
+                // Tự động chấm điểm lại nếu trận đấu đã kết thúc
+                $stmt_check = $pdo->prepare("SELECT status, home_score, away_score FROM matches WHERE id = ?");
+                $stmt_check->execute([$id]);
+                $m_check = $stmt_check->fetch();
+                if ($m_check && in_array($m_check['status'], ['FT', 'AET', 'PEN']) && $m_check['home_score'] !== null && $m_check['away_score'] !== null) {
+                    score_match_predictions($id, $m_check['home_score'], $m_check['away_score'], $handicap);
+                    
+                    $match_date = date('Y-m-d', strtotime($match_time));
+                    update_rankings_for_date($match_date);
+                    update_rankings_for_date(date('Y-m-d'));
+                }
+                
                 $success = "Cập nhật trận đấu thành công!";
             } else {
                 // Thêm mới
@@ -64,6 +76,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $home_score = $_POST['home_score'] === '' ? null : (int)$_POST['home_score'];
     $away_score = $_POST['away_score'] === '' ? null : (int)$_POST['away_score'];
     $status = (isset($_POST['quick_ft']) && $_POST['quick_ft'] == '1') ? 'FT' : ($_POST['status'] ?? 'NS');
+    if ($home_score !== null && $away_score !== null && $status === 'NS') {
+        $status = 'FT';
+    }
     
     try {
         $pdo->beginTransaction();
@@ -231,37 +246,37 @@ $matches = $pdo->query($sql_matches)->fetchAll();
                                             <input type="hidden" name="match_id" value="<?php echo $match['id']; ?>">
                                             
                                             <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-                                                <input type="number" name="home_score" class="form-control" style="width: 50px; text-align: center; padding: 6px;" value="<?php echo $match['home_score']; ?>" min="0" <?php echo in_array($match['status'], ['FT', 'AET', 'PEN']) ? 'disabled' : ''; ?>>
+                                                <input type="number" name="home_score" class="form-control" style="width: 50px; text-align: center; padding: 6px; <?php echo in_array($match['status'], ['FT', 'AET', 'PEN']) ? 'opacity: 0.6;' : ''; ?>" value="<?php echo $match['home_score']; ?>" min="0" <?php echo in_array($match['status'], ['FT', 'AET', 'PEN']) ? 'disabled' : ''; ?>>
                                                 <span style="color: var(--text-muted); font-weight: bold;">-</span>
-                                                <input type="number" name="away_score" class="form-control" style="width: 50px; text-align: center; padding: 6px;" value="<?php echo $match['away_score']; ?>" min="0" <?php echo in_array($match['status'], ['FT', 'AET', 'PEN']) ? 'disabled' : ''; ?>>
+                                                <input type="number" name="away_score" class="form-control" style="width: 50px; text-align: center; padding: 6px; <?php echo in_array($match['status'], ['FT', 'AET', 'PEN']) ? 'opacity: 0.6;' : ''; ?>" value="<?php echo $match['away_score']; ?>" min="0" <?php echo in_array($match['status'], ['FT', 'AET', 'PEN']) ? 'disabled' : ''; ?>>
                                             </div>
                                             
                                             <?php if (in_array($match['status'], ['FT', 'AET', 'PEN'])): ?>
-                                                <button type="button" class="btn btn-primary btn-sm" style="padding: 6px; font-size: 11px; display: flex; align-items: center; justify-content: center; gap: 4px; opacity: 0.5; cursor: not-allowed;" disabled>
-                                                    <i class="fa-solid fa-circle-check"></i> Cập nhật & FT
-                                                </button>
-                                                
-                                                <div class="form-control" style="padding: 6px; font-size: 11px; height: auto; text-align: center; background: rgba(0, 136, 85, 0.08); border-color: var(--accent); color: var(--accent); font-weight: bold;">
-                                                    Trạng thái: <?php echo htmlspecialchars($match['status']); ?>
-                                                </div>
-                                            <?php else: ?>
-                                                <button type="submit" name="quick_ft" value="1" class="btn btn-primary btn-sm" style="padding: 6px; font-size: 11px; display: flex; align-items: center; justify-content: center; gap: 4px;" title="Cập nhật tỷ số và kết thúc trận đấu (FT)">
-                                                    <i class="fa-solid fa-circle-check"></i> Cập nhật & FT
-                                                </button>
-                                                
-                                                <div style="display: flex; gap: 5px;">
-                                                    <select name="status" class="form-control" style="padding: 6px; font-size: 11px; height: auto; flex: 1;">
-                                                        <option value="NS" <?php echo $match['status'] === 'NS' ? 'selected' : ''; ?>>Chưa đá (NS)</option>
-                                                        <option value="FT" <?php echo $match['status'] === 'FT' ? 'selected' : ''; ?>>Hết giờ (FT)</option>
-                                                        <option value="AET" <?php echo $match['status'] === 'AET' ? 'selected' : ''; ?>>Hiệp phụ (AET)</option>
-                                                        <option value="PEN" <?php echo $match['status'] === 'PEN' ? 'selected' : ''; ?>>Penalty (PEN)</option>
-                                                    </select>
-                                                    
-                                                    <button type="submit" class="btn btn-secondary btn-sm" style="padding: 6px 10px;" title="Lưu tùy chọn trạng thái khác">
-                                                        <i class="fa-solid fa-floppy-disk"></i>
-                                                    </button>
+                                                <div style="font-size: 10px; text-align: center; background: rgba(0, 136, 85, 0.08); border: 1px solid var(--accent); color: var(--accent); padding: 4px; border-radius: 4px; font-weight: bold; margin-bottom: 4px;">
+                                                    <i class="fa-solid fa-circle-check"></i> Đã kết thúc (<?php echo $match['status']; ?>)
                                                 </div>
                                             <?php endif; ?>
+                                            
+                                            <div style="display: flex; gap: 5px; margin-top: 4px;">
+                                                <select name="status" class="form-control" style="padding: 6px; font-size: 11px; height: auto; flex: 1; <?php echo in_array($match['status'], ['FT', 'AET', 'PEN']) ? 'opacity: 0.6;' : ''; ?>" <?php echo in_array($match['status'], ['FT', 'AET', 'PEN']) ? 'disabled' : ''; ?>>
+                                                    <option value="NS" <?php echo $match['status'] === 'NS' ? 'selected' : ''; ?>>Chưa đá (NS)</option>
+                                                    <option value="FT" <?php echo $match['status'] === 'FT' ? 'selected' : ''; ?>>Hết giờ (FT)</option>
+                                                    <option value="AET" <?php echo $match['status'] === 'AET' ? 'selected' : ''; ?>>Hiệp phụ (AET)</option>
+                                                    <option value="PEN" <?php echo $match['status'] === 'PEN' ? 'selected' : ''; ?>>Penalty (PEN)</option>
+                                                </select>
+                                                
+                                                <?php if (in_array($match['status'], ['FT', 'AET', 'PEN'])): ?>
+                                                    <button type="button" class="btn btn-secondary btn-sm edit-btn" style="padding: 6px 12px; font-size: 11px; display: inline-flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: var(--text-main);" title="Chỉnh sửa tỷ số & trạng thái" onclick="enableMatchEditing(this)">
+                                                    
+                                                        <i class="fa-solid fa-pen-to-square"></i> Chỉnh sửa
+                                                    </button>
+                                                     <button type="submit" class="btn btn-primary btn-sm save-btn" style="padding: 6px 12px; font-size: 11px; display: none; align-items: center; gap: 4px;" title="Lưu tỷ số & trạng thái"><i class="fa-solid fa-floppy-disk"></i> Lưu</button>
+                                                <?php else: ?>
+                                                    <button type="submit" class="btn btn-primary btn-sm" style="padding: 6px 12px; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;" title="Cập nhật tỷ số & trạng thái">
+                                                        <i class="fa-solid fa-check"></i> Cập nhật
+                                                    </button>
+                                                <?php endif; ?>
+                                            </div>
                                         </form>
                                     </td>
                                     <td class="pdf-exclude" style="text-align: center;">
@@ -534,6 +549,21 @@ function setupAutoFlagMatch() {
     }
     if (awayInput) {
         awayInput.addEventListener('input', () => matchAndSet(awayInput, 'away_logo'));
+    }
+}
+
+function enableMatchEditing(button) {
+    const form = button.closest('form');
+    const inputs = form.querySelectorAll('input[type="number"], select[name="status"]');
+    for (let i = 0; i < inputs.length; i++) {
+        inputs[i].disabled = false;
+        inputs[i].removeAttribute('disabled');
+        inputs[i].style.opacity = '1';
+    }
+    button.style.display = 'none';
+    const saveBtn = form.querySelector('.save-btn');
+    if (saveBtn) {
+        saveBtn.style.display = 'inline-flex';
     }
 }
 

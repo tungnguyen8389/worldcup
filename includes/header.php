@@ -32,7 +32,10 @@ $current_page = basename($_SERVER['PHP_SELF']);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo isset($page_title) ? $page_title . " - World Cup Prediction" : "Dự đoán World Cup 2026"; ?></title>
+    <title><?php echo isset($page_title) ? $page_title . " - " . strip_tags(get_setting('site_logo_text', 'WorldCup Predict')) : strip_tags(get_setting('site_logo_text', 'WorldCup Predict')); ?></title>
+    <!-- Google Fonts Preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <!-- Link FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Link Chart.js (for leaderboards) -->
@@ -49,7 +52,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
         <div class="nav-container">
             <a href="<?php echo $path_prefix; ?>index.php" class="logo">
                 <i class="fa-solid fa-trophy text-primary" style="color: var(--primary);"></i>
-                <span>WorldCup <span>Predict</span></span>
+                <span><?php echo get_setting('site_logo_text', 'WorldCup <span>Predict</span>'); ?></span>
             </a>
             
             <?php if (is_logged_in()): ?>

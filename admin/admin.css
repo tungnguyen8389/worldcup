@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
     --bg-main: #f8faf9;
@@ -16,7 +16,7 @@
     --text-muted: #647b6e;
     --text-dark: #ffffff;
     
-    --font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-family: 'Be Vietnam Pro', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     --shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
     --shadow-glow: 0 0 15px rgba(170, 132, 20, 0.15);

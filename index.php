@@ -2,6 +2,7 @@
 // index.php
 $page_title = "Bảng điều khiển";
 require_once __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/includes/pdf_templates.php';
 require_login();
 
 $user_id = $_SESSION['user_id'];
@@ -373,7 +374,7 @@ if (!empty($top_5_ids)) {
         <div class="card" id="leaderboard-card">
             <div class="card-title" style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
                 <span><i class="fa-solid fa-ranking-star text-primary"></i> Bảng Xếp Hạng Nhóm</span>
-                <button onclick="exportToPDF('leaderboard-card', 'Bang_Xep_Hang_WorldCup')" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 12px; margin-left: auto;">
+                <button onclick="exportToPDF('pdf-leaderboard-template', 'Bang_Xep_Hang_WorldCup')" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 12px; margin-left: auto;">
                     <i class="fa-solid fa-file-pdf"></i> Xuất PDF
                 </button>
             </div>
@@ -529,6 +530,8 @@ if (!empty($top_5_ids)) {
         </div>
     </div>
 </div>
+
+<?php render_leaderboard_pdf($ranked_leaderboard, $user_id, $reveal_real_names, $prev_ranks); ?>
 
 <?php
 require_once __DIR__ . '/includes/footer.php';

@@ -15,12 +15,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $league_id = (int)($_POST['league_id'] ?? 1);
     $season = (int)($_POST['season'] ?? 2026);
     $reveal = isset($_POST['reveal_real_names']) ? 1 : 0;
+    $site_logo_text = trim($_POST['site_logo_text'] ?? '');
     
     try {
         save_setting('api_key', $api_key);
         save_setting('league_id', $league_id);
         save_setting('season', $season);
         save_setting('reveal_real_names', $reveal);
+        save_setting('site_logo_text', $site_logo_text);
         
         $success = "Lưu cấu hình hệ thống thành công!";
     } catch (Exception $e) {
@@ -33,6 +35,7 @@ $api_key = get_setting('api_key');
 $league_id = get_setting('league_id', 1);
 $season = get_setting('season', 2026);
 $reveal = get_setting('reveal_real_names', 0);
+$site_logo_text = get_setting('site_logo_text', 'WorldCup <span>Predict</span>');
 
 // Lấy các số liệu thống kê thực tế cho dashboard admin
 $total_users = $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'user'")->fetchColumn();
@@ -115,6 +118,14 @@ $finished_matches_count = $pdo->query("SELECT COUNT(*) FROM matches WHERE status
     
     <form method="POST">
         <input type="hidden" name="action" value="save_settings">
+        
+        <div class="form-group">
+            <label for="site_logo_text"><i class="fa-solid fa-signature"></i> Tiêu đề Website / Tên Logo (Ví dụ: WorldCup &lt;span&gt;Predict&lt;/span&gt;)</label>
+            <input type="text" name="site_logo_text" id="site_logo_text" class="form-control" value="<?php echo htmlspecialchars($site_logo_text); ?>" placeholder="Ví dụ: WorldCup <span>Predict</span>" required>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+                Mẹo: Bạn có thể sử dụng thẻ <code>&lt;span&gt;...&lt;/span&gt;</code> để đổi màu chữ nổi bật (màu vàng) cho từ khóa mong muốn.
+            </div>
+        </div>
         
         <div class="form-group">
             <label for="api_key"><i class="fa-solid fa-key"></i> API-Football Key (api-sports.io)</label>

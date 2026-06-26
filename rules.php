@@ -14,7 +14,7 @@ require_login();
         <h3 style="color: #fff; margin: 20px 0 10px 0; font-size: 18px; display: flex; align-items: center; gap: 8px;">
             <i class="fa-solid fa-clock text-primary" style="color: var(--primary);"></i> 1. Thời gian Khóa Dự đoán
         </h3>
-        <p>Mỗi trận đấu sẽ tự động khóa chức năng dự đoán <strong>15 phút trước thời điểm bóng lăn</strong> (theo giờ Việt Nam - GMT+7). Sau thời gian này, bạn không thể tạo mới hay thay đổi đội tuyển dự đoán. Đồng thời, dự đoán của tất cả người chơi khác cho trận đấu đó sẽ được hiển thị công khai để mọi người cùng kiểm tra chéo.</p>
+        <p>Mỗi trận đấu sẽ tự động khóa chức năng dự đoán <strong>15 phút trước thời điểm bóng lăn</strong> (theo giờ Việt Nam - GMT+7). Sau thời gian này, bạn không thể tạo mới hay thay đổi đội tuyển dự đoán. Dự đoán của tất cả người chơi khác cho trận đấu luôn được hiển thị công khai, minh bạch để mọi người cùng theo dõi.</p>
         
         <h3 style="color: #fff; margin: 30px 0 10px 0; font-size: 18px; display: flex; align-items: center; gap: 8px;">
             <i class="fa-solid fa-calculator text-primary" style="color: var(--primary);"></i> 2. Cơ chế Dự đoán & Tính điểm (Scoring System)
@@ -83,9 +83,10 @@ require_login();
         </ul>
         
         <h3 style="color: #fff; margin: 30px 0 10px 0; font-size: 18px; display: flex; align-items: center; gap: 8px;">
-            <i class="fa-solid fa-arrows-rotate text-primary" style="color: var(--primary);"></i> 5. Đồng bộ Lịch thi đấu & Kết quả
+            <i class="fa-solid fa-triangle-exclamation text-primary" style="color: var(--primary);"></i> 5. Mục đích Giải trí & Miễn trừ Trách nhiệm
         </h3>
-        <p>Lịch thi đấu và kết quả các trận đấu được cập nhật tự động từ máy chủ API bóng đá quốc tế. Hệ thống sẽ quét và tính điểm tự động cho các dự đoán sau mỗi loạt đấu hàng ngày. Trong trường hợp xảy ra sự cố API, Ban tổ chức sẽ tiến hành cập nhật thủ công để đảm bảo cuộc chơi diễn ra bình thường.</p>
+        <p>Website này được xây dựng và vận hành chỉ phục vụ mục đích hội nhóm nội bộ tham gia tương tác, giao lưu để tăng thêm không khí vui vẻ và kịch tính cho giải đấu. Hệ thống hoàn toàn <strong>không mang hình thức cá cược, cờ bạc hay ăn thua bằng tiền mặt</strong>.</p>
+        <p>Ban tổ chức (Quản trị viên) xin <strong>miễn trừ mọi trách nhiệm pháp lý</strong> nếu phát sinh bất kỳ hoạt động giao dịch, cá cược ăn thua bằng tiền mặt hoặc tài sản nào khác giữa các thành viên ngoài phạm vi quản lý của trang web này. Mọi hành vi lợi dụng nền tảng này vào mục đích cá cược trái quy định đều bị nghiêm cấm.</p>
     </div>
 </div>
 
