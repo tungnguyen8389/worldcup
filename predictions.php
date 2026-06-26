@@ -1,9 +1,11 @@
 <?php
 // predictions.php
+require_once __DIR__ . '/includes/auth.php';
+require_login();
+
 $page_title = "Lịch sử dự đoán";
 require_once __DIR__ . '/includes/header.php';
 require_once __DIR__ . '/includes/pdf_templates.php';
-require_login();
 
 $user_id = $_SESSION['user_id'];
 $reveal_real_names = (int)get_setting('reveal_real_names', 0);

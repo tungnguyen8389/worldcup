@@ -1,8 +1,10 @@
 <?php
 // stats.php — Thống kê cá nhân người chơi
+require_once __DIR__ . '/includes/auth.php';
+require_login();
+
 $page_title = "Thống kê của tôi";
 require_once __DIR__ . '/includes/header.php';
-require_login();
 
 $uid = $_SESSION['user_id'];
 

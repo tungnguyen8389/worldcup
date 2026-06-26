@@ -1,8 +1,10 @@
 <?php
 // profile.php
+require_once __DIR__ . '/includes/auth.php';
+require_login();
+
 $page_title = "Hồ sơ cá nhân";
 require_once __DIR__ . '/includes/header.php';
-require_login();
 
 $user_id = $_SESSION['user_id'];
 $error = '';

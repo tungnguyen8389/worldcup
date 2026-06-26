@@ -1,8 +1,10 @@
 <?php
 // rules.php
+require_once __DIR__ . '/includes/auth.php';
+require_login();
+
 $page_title = "Luật chơi";
 require_once __DIR__ . '/includes/header.php';
-require_login();
 ?>
 
 <div class="card fade-in">

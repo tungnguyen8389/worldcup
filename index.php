@@ -1,9 +1,11 @@
 <?php
 // index.php
+require_once __DIR__ . '/includes/auth.php';
+require_login();
+
 $page_title = "Bảng điều khiển";
 require_once __DIR__ . '/includes/header.php';
 require_once __DIR__ . '/includes/pdf_templates.php';
-require_login();
 
 $user_id = $_SESSION['user_id'];
 $points_exact = (int)get_setting('point_exact_score', 3);
