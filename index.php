@@ -12,7 +12,7 @@ $reveal_real_names = (int)get_setting('reveal_real_names', 0);
 $total_users_count = (int)$pdo->query("SELECT COUNT(*) FROM users WHERE role = 'user'")->fetchColumn();
 
 // 1. Lấy danh sách trận đấu đang và sắp diễn ra cùng số lượng người đã dự đoán
-$sql_upcoming = "SELECT m.*, p.predicted_home_score, p.predicted_away_score, p.points_awarded,
+$sql_upcoming = "SELECT m.*, p.predicted_team, p.points_awarded,
                         (SELECT COUNT(*) FROM predictions pr JOIN users u ON pr.user_id = u.id WHERE pr.match_id = m.id AND u.role = 'user') as prediction_count
                  FROM matches m 
                  LEFT JOIN predictions p ON m.id = p.match_id AND p.user_id = :user_id 
@@ -24,7 +24,7 @@ $stmt_up->execute(['user_id' => $user_id]);
 $upcoming_matches = $stmt_up->fetchAll();
 
 // 2. Lấy danh sách trận đấu kết thúc gần đây cùng số lượng người đã dự đoán
-$sql_finished = "SELECT m.*, p.predicted_home_score, p.predicted_away_score, p.points_awarded,
+$sql_finished = "SELECT m.*, p.predicted_team, p.points_awarded,
                         (SELECT COUNT(*) FROM predictions pr JOIN users u ON pr.user_id = u.id WHERE pr.match_id = m.id AND u.role = 'user') as prediction_count
                  FROM matches m 
                  LEFT JOIN predictions p ON m.id = p.match_id AND p.user_id = :user_id 
@@ -41,35 +41,36 @@ $sql_leaderboard = "SELECT
                         u.nickname,
                         u.real_name,
                         COALESCE(SUM(p.points_awarded), 0) as total_points,
-                        SUM(CASE WHEN p.points_awarded = :points_exact THEN 1 ELSE 0 END) as exact_count,
+                        SUM(CASE WHEN p.points_awarded = 1 THEN 1 ELSE 0 END) as win_count,
+                        SUM(CASE WHEN p.points_awarded = -1 THEN 1 ELSE 0 END) as loss_count,
                         COALESCE(SUM(UNIX_TIMESTAMP(p.created_at)), 0) as total_pred_time
                     FROM users u
                     LEFT JOIN predictions p ON u.id = p.user_id AND p.points_awarded IS NOT NULL
                     WHERE u.role = 'user'
                     GROUP BY u.id
-                    ORDER BY total_points DESC, exact_count DESC, total_pred_time ASC, u.nickname ASC";
+                    ORDER BY total_points DESC, win_count DESC, total_pred_time ASC, u.nickname ASC";
 $stmt_lead = $pdo->prepare($sql_leaderboard);
-$stmt_lead->execute(['points_exact' => $points_exact]);
+$stmt_lead->execute();
 $leaderboard = $stmt_lead->fetchAll();
 
 // Gán thứ hạng cho bảng xếp hạng hiện tại
 $ranked_leaderboard = [];
 $rank = 1;
-$prev_points = -1;
-$prev_exact = -1;
-$prev_pred_time = -1;
+$prev_points = null;
+$prev_wins = null;
+$prev_pred_time = null;
 foreach ($leaderboard as $index => $row) {
-    // Nếu có sự khác biệt về điểm số, số trận đoán trúng tuyệt đối, hoặc tổng thời gian dự đoán thì tăng hạng
-    if ($prev_points !== -1 && (
+    // Nếu có sự khác biệt về điểm số, số trận thắng, hoặc tổng thời gian dự đoán thì tăng hạng
+    if ($prev_points !== null && (
         $row['total_points'] < $prev_points || 
-        $row['exact_count'] < $prev_exact || 
+        $row['win_count'] < $prev_wins || 
         $row['total_pred_time'] > $prev_pred_time
     )) {
         $rank = $index + 1;
     }
     $row['rank'] = $rank;
     $prev_points = $row['total_points'];
-    $prev_exact = $row['exact_count'];
+    $prev_wins = $row['win_count'];
     $prev_pred_time = $row['total_pred_time'];
     $ranked_leaderboard[] = $row;
 }
@@ -189,7 +190,7 @@ if (!empty($top_5_ids)) {
                 <div class="matches-grid">
                     <?php foreach ($upcoming_matches as $match): 
                         $is_locked = is_match_locked($match['match_time']);
-                        $has_predicted = ($match['predicted_home_score'] !== null && $match['predicted_away_score'] !== null);
+                        $has_predicted = !empty($match['predicted_team']);
                     ?>
                         <div class="match-card <?php echo $is_locked ? 'locked' : ''; ?>">
                             <!-- Thông tin giải đấu / Trạng thái khóa -->
@@ -202,52 +203,66 @@ if (!empty($top_5_ids)) {
                                 </span>
                             </div>
                             
-                            <!-- Đội thi đấu -->
-                            <div class="match-teams">
-                                <div class="team-box">
-                                    <img src="<?php echo htmlspecialchars($match['home_logo'] ?: 'assets/images/team_placeholder.png'); ?>" class="team-logo" alt="<?php echo htmlspecialchars($match['home_team']); ?>">
-                                    <span class="team-name" title="<?php echo htmlspecialchars($match['home_team']); ?>"><?php echo htmlspecialchars($match['home_team']); ?></span>
-                                </div>
-                                
-                                <div class="match-vs">
-                                    <span>VS</span>
-                                    <span style="font-size: 11px; font-weight: normal; color: var(--text-muted);">
-                                        <?php echo date('H:i d/m', strtotime($match['match_time'])); ?>
+                            <!-- Form dự đoán chọn đội -->
+                            <form class="prediction-form" data-match-id="<?php echo $match['id']; ?>">
+                                <!-- Kèo chấp -->
+                                <div style="text-align: center; margin-bottom: 12px;">
+                                    <span style="font-size: 11px; background: rgba(212, 175, 55, 0.1); color: var(--primary); padding: 4px 10px; border-radius: 20px; font-weight: 600; border: 1px solid rgba(212, 175, 55, 0.2); display: inline-flex; align-items: center; gap: 4px;">
+                                        <i class="fa-solid fa-scale-balanced" style="font-size: 10px;"></i> Kèo chấp: 
+                                        <strong>
+                                            <?php 
+                                            $hc = (float)($match['handicap'] ?? 0.0);
+                                            if ($hc > 0) {
+                                                echo htmlspecialchars($match['home_team']) . ' chấp ' . $hc;
+                                            } elseif ($hc < 0) {
+                                                echo htmlspecialchars($match['away_team']) . ' chấp ' . abs($hc);
+                                            } else {
+                                                echo 'Đồng banh (0.0)';
+                                            }
+                                            ?>
+                                        </strong>
                                     </span>
                                 </div>
                                 
-                                <div class="team-box">
-                                    <img src="<?php echo htmlspecialchars($match['away_logo'] ?: 'assets/images/team_placeholder.png'); ?>" class="team-logo" alt="<?php echo htmlspecialchars($match['away_team']); ?>">
-                                    <span class="team-name" title="<?php echo htmlspecialchars($match['away_team']); ?>"><?php echo htmlspecialchars($match['away_team']); ?></span>
-                                </div>
-                            </div>
-                            
-                            <!-- Thống kê số người dự đoán -->
-                            <div style="font-size: 11.5px; color: var(--text-muted); text-align: center; margin: 8px 0; background: rgba(0, 0, 0, 0.02); padding: 4px 8px; border-radius: 6px; display: flex; align-items: center; justify-content: center; gap: 6px; box-sizing: border-box;">
-                                <i class="fa-solid fa-chart-simple" style="color: var(--primary);"></i>
-                                <span>Đã dự đoán: <strong><?php echo $match['prediction_count']; ?></strong>/<strong><?php echo $total_users_count; ?></strong> thành viên</span>
-                            </div>
-                            
-                            <!-- Form dự đoán -->
-                            <form class="prediction-form" data-match-id="<?php echo $match['id']; ?>">
-                                <div class="pred-inputs-wrapper">
-                                    <input type="number" min="0" class="pred-input home-score-input" value="<?php echo $match['predicted_home_score']; ?>" <?php echo $is_locked ? 'disabled' : ''; ?> required>
-                                    <span style="color: var(--text-muted); font-weight: bold; font-size: 20px;">-</span>
-                                    <input type="number" min="0" class="pred-input away-score-input" value="<?php echo $match['predicted_away_score']; ?>" <?php echo $is_locked ? 'disabled' : ''; ?> required>
+                                <div class="match-teams-selector">
+                                    <button type="button" class="team-select-btn <?php echo ($match['predicted_team'] === 'home') ? 'selected' : ''; ?>" data-team="home" <?php echo $is_locked ? 'disabled' : ''; ?>>
+                                        <img src="<?php echo htmlspecialchars($match['home_logo'] ?: 'assets/images/team_placeholder.png'); ?>" class="team-logo" alt="">
+                                        <span class="team-name" title="<?php echo htmlspecialchars($match['home_team']); ?>"><?php echo htmlspecialchars($match['home_team']); ?></span>
+                                        <span class="select-badge"><i class="fa-solid fa-check"></i> Chọn</span>
+                                    </button>
+                                    
+                                    <div class="match-vs-selector">
+                                        <span class="vs-text">VS</span>
+                                        <span class="vs-time"><?php echo date('H:i d/m', strtotime($match['match_time'])); ?></span>
+                                    </div>
+                                    
+                                    <button type="button" class="team-select-btn <?php echo ($match['predicted_team'] === 'away') ? 'selected' : ''; ?>" data-team="away" <?php echo $is_locked ? 'disabled' : ''; ?>>
+                                        <img src="<?php echo htmlspecialchars($match['away_logo'] ?: 'assets/images/team_placeholder.png'); ?>" class="team-logo" alt="">
+                                        <span class="team-name" title="<?php echo htmlspecialchars($match['away_team']); ?>"><?php echo htmlspecialchars($match['away_team']); ?></span>
+                                        <span class="select-badge"><i class="fa-solid fa-check"></i> Chọn</span>
+                                    </button>
                                 </div>
                                 
-                                <?php if ($has_predicted): ?>
-                                    <div class="pred-score-text" style="border-color: rgba(0, 255, 170, 0.3); border-style: solid;">
-                                        Bạn đoán: <strong style="color: var(--accent); font-size: 16px;"><?php echo $match['predicted_home_score'] . ' - ' . $match['predicted_away_score']; ?></strong>
-                                    </div>
-                                <?php else: ?>
-                                    <div class="pred-score-text pred-status-text">
+                                <input type="hidden" name="predicted_team" class="predicted-team-input" value="<?php echo htmlspecialchars($match['predicted_team'] ?: ''); ?>">
+                                
+                                <!-- Thống kê số người dự đoán -->
+                                <div style="font-size: 11.5px; color: var(--text-muted); text-align: center; margin: 10px 0; background: rgba(0, 0, 0, 0.02); padding: 4px 8px; border-radius: 6px; display: flex; align-items: center; justify-content: center; gap: 6px; box-sizing: border-box;">
+                                    <i class="fa-solid fa-chart-simple" style="color: var(--primary);"></i>
+                                    <span>Đã dự đoán: <strong><?php echo $match['prediction_count']; ?></strong>/<strong><?php echo $total_users_count; ?></strong> thành viên</span>
+                                </div>
+                                
+                                <div class="pred-score-text pred-status-text" style="<?php echo $has_predicted ? 'border-color: rgba(0, 255, 170, 0.3); border-style: solid;' : ''; ?>">
+                                    <?php if ($has_predicted): 
+                                        $selected_team_name = ($match['predicted_team'] === 'home') ? $match['home_team'] : $match['away_team'];
+                                    ?>
+                                        Bạn đã chọn: <strong style="color: var(--accent); font-size: 15px;"><?php echo htmlspecialchars($selected_team_name); ?></strong>
+                                    <?php else: ?>
                                         Chưa có dự đoán
-                                    </div>
-                                <?php endif; ?>
+                                    <?php endif; ?>
+                                </div>
                                 
                                 <?php if (!$is_locked): ?>
-                                    <button type="submit" class="btn btn-primary btn-sm btn-predict" style="width: 100%; margin-top: 10px;">
+                                    <button type="submit" class="btn btn-primary btn-sm btn-predict" style="width: 100%; margin-top: 10px;" <?php echo !$has_predicted ? 'disabled' : ''; ?>>
                                         <?php echo $has_predicted ? 'Cập nhật <i class="fa-solid fa-check"></i>' : 'Lưu dự đoán <i class="fa-solid fa-floppy-disk"></i>'; ?>
                                     </button>
                                 <?php endif; ?>
@@ -274,8 +289,8 @@ if (!empty($top_5_ids)) {
                         <div class="match-card locked" style="border-color: rgba(255, 255, 255, 0.04);">
                             <!-- Điểm được thưởng -->
                             <?php if ($points !== null): ?>
-                                <span class="pred-points-badge <?php echo $points == 0 ? 'zero' : ''; ?>">
-                                    +<?php echo $points; ?> điểm
+                                <span class="pred-points-badge <?php echo $points == 0 ? 'zero' : ($points < 0 ? 'negative' : ''); ?>" style="<?php echo $points < 0 ? 'background: linear-gradient(135deg, #ff6b8b 0%, var(--accent-red) 100%) !important; box-shadow: 0 4px 10px rgba(217, 56, 58, 0.25) !important;' : ''; ?>">
+                                    <?php echo $points > 0 ? '+' : ''; ?><?php echo $points; ?> điểm
                                 </span>
                             <?php endif; ?>
                             
@@ -303,6 +318,23 @@ if (!empty($top_5_ids)) {
                                 </div>
                             </div>
                             
+                            <!-- Kèo chấp -->
+                            <div style="text-align: center; margin-top: 8px; font-size: 11px; color: var(--text-muted);">
+                                Kèo chấp: 
+                                <strong style="color: var(--accent);">
+                                    <?php 
+                                    $hc = (float)($match['handicap'] ?? 0.0);
+                                    if ($hc > 0) {
+                                        echo htmlspecialchars($match['home_team']) . ' chấp ' . $hc;
+                                    } elseif ($hc < 0) {
+                                        echo htmlspecialchars($match['away_team']) . ' chấp ' . abs($hc);
+                                    } else {
+                                        echo 'Đồng banh (0.0)';
+                                    }
+                                    ?>
+                                </strong>
+                            </div>
+                            
                             <!-- Thống kê số người dự đoán -->
                             <div style="font-size: 11.5px; color: var(--text-muted); text-align: center; margin: 8px 0; background: rgba(0, 0, 0, 0.02); padding: 4px 8px; border-radius: 6px; display: flex; align-items: center; justify-content: center; gap: 6px; box-sizing: border-box;">
                                 <i class="fa-solid fa-chart-simple" style="color: var(--primary);"></i>
@@ -310,26 +342,18 @@ if (!empty($top_5_ids)) {
                             </div>
                             
                             <div class="pred-score-text" style="background: rgba(255,255,255,0.01);">
-                                <?php if ($match['predicted_home_score'] !== null): ?>
-                                    Bạn đoán: <strong><?php echo $match['predicted_home_score'] . ' - ' . $match['predicted_away_score']; ?></strong> 
+                                <?php if (!empty($match['predicted_team'])): 
+                                    $sel_team = $match['predicted_team'];
+                                    $sel_team_name = ($sel_team === 'home') ? $match['home_team'] : $match['away_team'];
+                                ?>
+                                    Bạn chọn: <strong><?php echo htmlspecialchars($sel_team_name); ?></strong> 
                                     (<?php 
-                                        $pred_h = (int)$match['predicted_home_score'];
-                                        $pred_a = (int)$match['predicted_away_score'];
-                                        $act_h = (int)$match['home_score'];
-                                        $act_a = (int)$match['away_score'];
-                                        
-                                        if ($pred_h === $act_h && $pred_a === $act_a) {
-                                            echo 'Trúng tỷ số!';
-                                        } elseif (($pred_h - $pred_a) === ($act_h - $act_a) && ($pred_h - $pred_a) !== 0) {
-                                            echo 'Trúng hiệu số!';
-                                        } elseif ($pred_h > $pred_a && $act_h > $act_a) {
-                                            echo 'Trúng Đội nhà thắng!';
-                                        } elseif ($pred_h < $pred_a && $act_h < $act_a) {
-                                            echo 'Trúng Đội khách thắng!';
-                                        } elseif ($pred_h === $pred_a && $act_h === $act_a) {
-                                            echo 'Trúng kết quả Hòa!';
+                                        if ($points == 1) {
+                                            echo '<span style="color: var(--accent); font-weight: bold;">Thắng +1đ</span>';
+                                        } elseif ($points == -1) {
+                                            echo '<span style="color: var(--accent-red); font-weight: bold;">Thua -1đ</span>';
                                         } else {
-                                            echo 'Sai lệch';
+                                            echo '<span style="color: var(--text-muted); font-weight: bold;">Hòa 0đ</span>';
                                         }
                                     ?>)
                                 <?php else: ?>
@@ -360,8 +384,8 @@ if (!empty($top_5_ids)) {
                         <tr>
                             <th style="width: 50px; text-align: center;">Hạng</th>
                             <th>Thành viên</th>
-                            <th style="text-align: center; width: 60px;">Đoán 3đ</th>
-                            <th style="text-align: right; width: 80px;">Tổng Điểm</th>
+                            <th style="text-align: center; width: 95px;">Thắng/Thua</th>
+                            <th style="text-align: right; width: 95px;">Tổng Điểm</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -411,7 +435,9 @@ if (!empty($top_5_ids)) {
                                         <?php endif; ?>
                                     </td>
                                     <td style="text-align: center; font-weight: 500; color: var(--text-muted);">
-                                        <?php echo $user['exact_count']; ?>
+                                        <span style="color: var(--accent); font-weight: 600;"><?php echo $user['win_count']; ?></span>
+                                        /
+                                        <span style="color: var(--accent-red); font-weight: 600;"><?php echo $user['loss_count']; ?></span>
                                     </td>
                                     <td style="text-align: right; font-weight: 800; font-size: 16px; color: var(--primary);">
                                         <?php echo $user['total_points']; ?>

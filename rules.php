@@ -14,49 +14,66 @@ require_login();
         <h3 style="color: #fff; margin: 20px 0 10px 0; font-size: 18px; display: flex; align-items: center; gap: 8px;">
             <i class="fa-solid fa-clock text-primary" style="color: var(--primary);"></i> 1. Thời gian Khóa Dự đoán
         </h3>
-        <p>Mỗi trận đấu sẽ tự động khóa chức năng dự đoán <strong>15 phút trước thời điểm bóng lăn</strong> (theo giờ Việt Nam - GMT+7). Sau thời gian này, bạn không thể tạo mới hay thay đổi tỷ số đã chọn. Đồng thời, dự đoán của tất cả người chơi khác cho trận đấu đó sẽ được hiển thị công khai để mọi người cùng kiểm tra chéo.</p>
+        <p>Mỗi trận đấu sẽ tự động khóa chức năng dự đoán <strong>15 phút trước thời điểm bóng lăn</strong> (theo giờ Việt Nam - GMT+7). Sau thời gian này, bạn không thể tạo mới hay thay đổi đội tuyển dự đoán. Đồng thời, dự đoán của tất cả người chơi khác cho trận đấu đó sẽ được hiển thị công khai để mọi người cùng kiểm tra chéo.</p>
         
         <h3 style="color: #fff; margin: 30px 0 10px 0; font-size: 18px; display: flex; align-items: center; gap: 8px;">
-            <i class="fa-solid fa-calculator text-primary" style="color: var(--primary);"></i> 2. Cơ chế Tính điểm (Scoring System)
+            <i class="fa-solid fa-calculator text-primary" style="color: var(--primary);"></i> 2. Cơ chế Dự đoán & Tính điểm (Scoring System)
         </h3>
-        <p>Điểm số của mỗi lượt chơi sẽ được tự động tính toán sau khi trận đấu kết thúc dựa trên kết quả chính thức (trong 90 phút thi đấu chính thức và hiệp phụ, không tính loạt sút luân lưu 11m):</p>
+        <p>Mỗi trận đấu sẽ được Ban tổ chức áp dụng một tỷ lệ <strong>kèo chấp (Handicap)</strong>. Bạn sẽ đưa ra dự đoán bằng cách chọn đội giành chiến thắng sau khi áp dụng tỷ lệ kèo chấp này.</p>
+        <p>Điểm số và kết quả thắng/thua được tính dựa trên kết quả chính thức của trận đấu (gồm 90 phút thi đấu chính thức và hiệp phụ nếu có, không tính loạt sút luân lưu 11m):</p>
         
         <div class="table-responsive" style="margin-top: 15px; margin-bottom: 20px;">
             <table style="background: rgba(0,0,0,0.2); border-radius: 8px; overflow: hidden;">
                 <thead>
                     <tr style="background: rgba(255,255,255,0.02);">
-                        <th>Kết quả dự đoán</th>
-                        <th style="text-align: center;">Điểm cộng</th>
-                        <th>Ví dụ (Kết quả thực tế: 2 - 1)</th>
+                        <th>Kết quả dự đoán (sau Handicap)</th>
+                        <th style="text-align: center; width: 120px;">Điểm nhận được</th>
+                        <th>Trạng thái</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td><strong>Đoán trúng tỷ số chính xác</strong> (Perfect Match)</td>
-                        <td style="text-align: center; color: var(--accent); font-weight: bold; font-size: 18px;">+<?php echo htmlspecialchars(get_setting('point_exact_score', 3)); ?></td>
-                        <td>Dự đoán: <strong>2 - 1</strong></td>
+                        <td><strong>Đoán đúng đội thắng kèo</strong></td>
+                        <td style="text-align: center; color: var(--accent); font-weight: bold; font-size: 18px;">+1</td>
+                        <td><span style="color: var(--accent); font-weight: bold;">Thắng (Win)</span></td>
                     </tr>
                     <tr>
-                        <td><strong>Đoán trúng đội thắng & đúng hiệu số</strong> (Goal Difference)</td>
-                        <td style="text-align: center; color: var(--primary); font-weight: bold; font-size: 18px;">+<?php echo htmlspecialchars(get_setting('point_goal_difference', 2)); ?></td>
-                        <td>Dự đoán: <strong>3 - 2</strong> (Cùng hiệu số cách biệt +1)</td>
+                        <td><strong>Hòa kèo</strong> (điểm số sau handicap bằng tỷ số đội khách)</td>
+                        <td style="text-align: center; color: var(--text-muted); font-weight: bold; font-size: 18px;">0</td>
+                        <td><span style="color: var(--text-muted);">Hòa (Draw)</span></td>
                     </tr>
                     <tr>
-                        <td><strong>Đoán trúng kết quả chung cuộc</strong> (Outcome)</td>
-                        <td style="text-align: center; color: #fff; font-weight: bold; font-size: 18px;">+<?php echo htmlspecialchars(get_setting('point_correct_outcome', 1)); ?></td>
-                        <td>Dự đoán: <strong>1 - 0</strong> hoặc <strong>3 - 0</strong> (Đúng đội thắng nhưng sai tỷ số & hiệu số)</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Đoán sai hoàn toàn</strong> (Incorrect)</td>
-                        <td style="text-align: center; color: var(--accent-red); font-weight: bold; font-size: 18px;">0</td>
-                        <td>Dự đoán: <strong>1 - 1</strong> hoặc <strong>0 - 2</strong></td>
+                        <td><strong>Đoán sai đội thắng kèo</strong></td>
+                        <td style="text-align: center; color: var(--accent-red); font-weight: bold; font-size: 18px;">-1</td>
+                        <td><span style="color: var(--accent-red); font-weight: bold;">Thua (Loss)</span></td>
                     </tr>
                 </tbody>
             </table>
         </div>
+
+        <div style="background: rgba(255,255,255,0.02); border-left: 3px solid var(--accent); padding: 12px; border-radius: 4px; font-size: 13.5px; margin-bottom: 20px;">
+            <strong>Ví dụ minh họa:</strong> Trận đấu giữa <strong>Brazil vs Cameroon</strong>, Brazil chấp <strong>1.5</strong> bàn (Handicap = 1.5). Tỷ số thực tế là Brazil <strong>2 - 1</strong> Cameroon.
+            <ul style="margin-left: 20px; margin-top: 5px; list-style-type: disc;">
+                <li>Điểm điều chỉnh của Brazil = 2 - 1.5 = 0.5 bàn.</li>
+                <li>So sánh: 0.5 (Brazil) &lt; 1 (Cameroon) &rarr; Cameroon thắng kèo.</li>
+                <li>Nếu bạn chọn <strong>Cameroon</strong>: Bạn được <strong>+1 điểm</strong>.</li>
+                <li>Nếu bạn chọn <strong>Brazil</strong>: Bạn bị <strong>-1 điểm</strong>.</li>
+            </ul>
+        </div>
         
         <h3 style="color: #fff; margin: 30px 0 10px 0; font-size: 18px; display: flex; align-items: center; gap: 8px;">
-            <i class="fa-solid fa-user-secret text-primary" style="color: var(--primary);"></i> 3. Chính sách Bảo mật Danh tính (Nickname vs Tên thật)
+            <i class="fa-solid fa-ranking-star text-primary" style="color: var(--primary);"></i> 3. Tiêu chí Xếp hạng & Phân định khi Bằng điểm
+        </h3>
+        <p>Bảng xếp hạng chung cuộc và hàng ngày sẽ được ưu tiên sắp xếp theo thứ tự các tiêu chí sau:</p>
+        <ol style="margin-left: 20px; margin-top: 10px;">
+            <li><strong>Tổng điểm số:</strong> Thành viên có tổng số điểm cao hơn xếp trên.</li>
+            <li><strong>Số trận thắng kèo (Win):</strong> Nếu bằng điểm, thành viên có số trận thắng kèo nhiều hơn sẽ xếp trên.</li>
+            <li><strong>Thời gian dự đoán sớm hơn:</strong> Nếu tiếp tục bằng nhau về cả 2 tiêu chí trên, thành viên có <strong>tổng thời gian hoàn thành dự đoán sớm hơn</strong> (tổng thời gian tạo/cập nhật cuối cùng của các dự đoán nhỏ hơn) sẽ được xếp hạng cao hơn.</li>
+            <li><strong>Tên hiển thị (Nickname):</strong> Nếu tất cả các tiêu chí trên vẫn trùng khớp hoàn hảo, thứ tự xếp hạng sẽ được phân theo bảng chữ cái của Nickname.</li>
+        </ol>
+
+        <h3 style="color: #fff; margin: 30px 0 10px 0; font-size: 18px; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-user-secret text-primary" style="color: var(--primary);"></i> 4. Chính sách Bảo mật Danh tính (Nickname vs Tên thật)
         </h3>
         <p>Để tăng phần kịch tính, tò mò và tránh các tác động bên ngoài trong suốt giải đấu:</p>
         <ul style="margin-left: 20px; margin-top: 10px; list-style-type: square;">
@@ -66,20 +83,9 @@ require_login();
         </ul>
         
         <h3 style="color: #fff; margin: 30px 0 10px 0; font-size: 18px; display: flex; align-items: center; gap: 8px;">
-            <i class="fa-solid fa-arrows-rotate text-primary" style="color: var(--primary);"></i> 4. Đồng bộ Lịch thi đấu & Kết quả
+            <i class="fa-solid fa-arrows-rotate text-primary" style="color: var(--primary);"></i> 5. Đồng bộ Lịch thi đấu & Kết quả
         </h3>
         <p>Lịch thi đấu và kết quả các trận đấu được cập nhật tự động từ máy chủ API bóng đá quốc tế. Hệ thống sẽ quét và tính điểm tự động cho các dự đoán sau mỗi loạt đấu hàng ngày. Trong trường hợp xảy ra sự cố API, Ban tổ chức sẽ tiến hành cập nhật thủ công để đảm bảo cuộc chơi diễn ra bình thường.</p>
-        
-        <h3 style="color: #fff; margin: 30px 0 10px 0; font-size: 18px; display: flex; align-items: center; gap: 8px;">
-            <i class="fa-solid fa-ranking-star text-primary" style="color: var(--primary);"></i> 5. Tiêu chí Xếp hạng & Phân định khi Bằng điểm
-        </h3>
-        <p>Bảng xếp hạng chung cuộc và hàng ngày sẽ được ưu tiên sắp xếp theo thứ tự các tiêu chí sau:</p>
-        <ol style="margin-left: 20px; margin-top: 10px;">
-            <li><strong>Tổng điểm số:</strong> Thành viên có tổng số điểm cao hơn xếp trên.</li>
-            <li><strong>Số trận đoán trúng tỷ số chính xác:</strong> Nếu bằng điểm, thành viên có số trận đoán đúng tỷ số chính xác tuyệt đối nhiều hơn sẽ xếp trên.</li>
-            <li><strong>Thời gian dự đoán sớm hơn:</strong> Nếu tiếp tục bằng nhau về cả 2 tiêu chí trên, thành viên có <strong>tổng thời gian hoàn thành dự đoán sớm hơn</strong> (tổng thời gian tạo/cập nhật cuối cùng của các dự đoán nhỏ hơn) sẽ được xếp hạng cao hơn.</li>
-            <li><strong>Tên hiển thị (Nickname):</strong> Nếu tất cả các tiêu chí trên vẫn trùng khớp hoàn hảo, thứ tự xếp hạng sẽ được phân theo bảng chữ cái của Nickname.</li>
-        </ol>
     </div>
 </div>
 

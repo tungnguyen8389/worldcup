@@ -4,7 +4,6 @@ $page_title = "Quản lý trận đấu";
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_admin();
-require_once __DIR__ . '/../includes/header.php';
 
 $error = '';
 $success = $_GET['success'] ?? '';
@@ -24,6 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $away_logo = trim($_POST['away_logo'] ?? '');
     $match_time = $_POST['match_time'] ?? '';
     $round = trim($_POST['round'] ?? 'Vòng bảng');
+    $handicap = isset($_POST['handicap']) && $_POST['handicap'] !== '' ? (float)$_POST['handicap'] : 0.0;
     
     if (empty($home_team) || empty($away_team) || empty($match_time)) {
         $error = "Vui lòng điền đầy đủ các thông tin trận đấu bắt buộc!";
@@ -31,9 +31,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         try {
             if ($is_edit) {
                 // Cập nhật trận đấu hiện tại
-                $sql = "UPDATE matches SET id = ?, home_team = ?, away_team = ?, home_logo = ?, away_logo = ?, match_time = ?, round = ? WHERE id = ?";
+                $sql = "UPDATE matches SET id = ?, home_team = ?, away_team = ?, home_logo = ?, away_logo = ?, match_time = ?, round = ?, handicap = ? WHERE id = ?";
                 $stmt = $pdo->prepare($sql);
-                $stmt->execute([$id, $home_team, $away_team, $home_logo, $away_logo, $match_time, $round, $original_id]);
+                $stmt->execute([$id, $home_team, $away_team, $home_logo, $away_logo, $match_time, $round, $handicap, $original_id]);
                 
                 // Nếu ID thay đổi, cập nhật dự đoán liên quan
                 if ($id !== $original_id) {
@@ -44,10 +44,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 $success = "Cập nhật trận đấu thành công!";
             } else {
                 // Thêm mới
-                $sql = "INSERT INTO matches (id, home_team, away_team, home_logo, away_logo, match_time, status, round) 
-                        VALUES (?, ?, ?, ?, ?, ?, 'NS', ?)";
+                $sql = "INSERT INTO matches (id, home_team, away_team, home_logo, away_logo, match_time, status, round, handicap) 
+                        VALUES (?, ?, ?, ?, ?, ?, 'NS', ?, ?)";
                 $stmt = $pdo->prepare($sql);
-                $stmt->execute([$id, $home_team, $away_team, $home_logo, $away_logo, $match_time, $round]);
+                $stmt->execute([$id, $home_team, $away_team, $home_logo, $away_logo, $match_time, $round, $handicap]);
                 $success = "Thêm trận đấu thành công!";
             }
             header("Location: matches.php?success=" . urlencode($success));
@@ -76,29 +76,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         // Nếu chuyển sang trạng thái đã kết thúc thì chấm điểm các dự đoán liên quan
         $predictions_scored = 0;
         if (in_array($status, ['FT', 'AET', 'PEN']) && $home_score !== null && $away_score !== null) {
-            // Lấy ngày thi đấu để tính bảng xếp hạng sau đó
-            $stmt_date = $pdo->prepare("SELECT match_time FROM matches WHERE id = ?");
-            $stmt_date->execute([$match_id]);
-            $match_time_str = $stmt_date->fetchColumn();
-            $match_date = date('Y-m-d', strtotime($match_time_str));
+            // Lấy ngày thi đấu và tỷ lệ chấp để tính bảng xếp hạng sau đó
+            $stmt_match_info = $pdo->prepare("SELECT match_time, handicap FROM matches WHERE id = ?");
+            $stmt_match_info->execute([$match_id]);
+            $match_info = $stmt_match_info->fetch();
+            $match_date = date('Y-m-d', strtotime($match_info['match_time']));
+            $handicap = (float)($match_info['handicap'] ?? 0.0);
             
-            // Lấy tất cả dự đoán cho trận này
-            $stmt_preds = $pdo->prepare("SELECT * FROM predictions WHERE match_id = ?");
-            $stmt_preds->execute([$match_id]);
-            $preds = $stmt_preds->fetchAll();
-            
-            foreach ($preds as $pred) {
-                $points = calculate_points(
-                    $pred['predicted_home_score'],
-                    $pred['predicted_away_score'],
-                    $home_score,
-                    $away_score
-                );
-                
-                $stmt_up_pred = $pdo->prepare("UPDATE predictions SET points_awarded = ?, prediction_status = 1 WHERE id = ?");
-                $stmt_up_pred->execute([$points, $pred['id']]);
-                $predictions_scored++;
-            }
+            // Chấm điểm các dự đoán và xử thua cho thành viên không dự đoán
+            $predictions_scored = score_match_predictions($match_id, $home_score, $away_score, $handicap);
             
             $pdo->commit();
             
@@ -133,6 +119,8 @@ if (isset($_GET['delete_match'])) {
         $error = "Lỗi khi xóa trận đấu: " . $e->getMessage();
     }
 }
+
+require_once __DIR__ . '/../includes/header.php';
 
 // 4. Lấy thông tin trận đấu đang được chỉnh sửa (nếu có)
 $edit_match = null;
@@ -217,6 +205,21 @@ $matches = $pdo->query($sql_matches)->fetchAll();
                                         </div>
                                         <div style="font-size: 12px; color: var(--text-muted);">
                                             <i class="fa-solid fa-clock"></i> <?php echo format_match_time($match['match_time']); ?>
+                                        </div>
+                                        <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+                                            <i class="fa-solid fa-scale-balanced"></i> Kèo chấp: 
+                                            <strong style="color: var(--accent);">
+                                                <?php 
+                                                $hc = (float)($match['handicap'] ?? 0.0);
+                                                if ($hc > 0) {
+                                                    echo htmlspecialchars($match['home_team']) . ' chấp ' . $hc;
+                                                } elseif ($hc < 0) {
+                                                    echo htmlspecialchars($match['away_team']) . ' chấp ' . abs($hc);
+                                                } else {
+                                                    echo 'Đồng banh (0.0)';
+                                                }
+                                                ?>
+                                            </strong>
                                         </div>
                                     </td>
                                     <td>
@@ -340,6 +343,14 @@ $matches = $pdo->query($sql_matches)->fetchAll();
                 <div class="form-group">
                     <label for="match_time">Thời gian bắt đầu (Giờ Việt Nam) *</label>
                     <input type="datetime-local" name="match_time" id="match_time" class="form-control" value="<?php echo $edit_match ? date('Y-m-d\TH:i', strtotime($edit_match['match_time'])) : ''; ?>" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="handicap">Kèo Chấp (Đội Nhà chấp Đội Khách) *</label>
+                    <input type="number" name="handicap" id="handicap" class="form-control" step="0.25" value="<?php echo $edit_match ? htmlspecialchars($edit_match['handicap']) : '0'; ?>" required>
+                    <small style="color: var(--text-muted); font-size: 11.5px; margin-top: 5px; display: block;">
+                        * Nhập số dương (ví dụ: <code>1.5</code>) nếu Đội nhà chấp. Nhập số âm (ví dụ: <code>-0.5</code>) nếu Đội khách chấp. Nhập <code>0</code> nếu đồng banh.
+                    </small>
                 </div>
                 
                 <div style="display: flex; gap: 10px; margin-top: 10px;">

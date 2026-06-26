@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS `matches` (
     `away_team` VARCHAR(100) NOT NULL,
     `home_logo` VARCHAR(255) DEFAULT NULL,
     `away_logo` VARCHAR(255) DEFAULT NULL,
+    `handicap` FLOAT DEFAULT 0.0,
     `match_time` DATETIME NOT NULL,
     `status` VARCHAR(50) DEFAULT 'NS', -- NS: Not Started, FT: Full Time, etc.
     `home_score` INT DEFAULT NULL,
@@ -33,8 +34,9 @@ CREATE TABLE IF NOT EXISTS `predictions` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `user_id` INT NOT NULL,
     `match_id` INT NOT NULL,
-    `predicted_home_score` INT NOT NULL,
-    `predicted_away_score` INT NOT NULL,
+    `predicted_team` VARCHAR(10) DEFAULT NULL, -- 'home' or 'away'
+    `predicted_home_score` INT DEFAULT NULL,
+    `predicted_away_score` INT DEFAULT NULL,
     `points_awarded` INT DEFAULT NULL,
     `prediction_status` TINYINT DEFAULT 0, -- 0: Chưa tính, 1: Đã tính điểm
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

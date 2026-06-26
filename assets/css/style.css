@@ -673,6 +673,25 @@ footer {
 .pdf-exporting .pdf-only {
     display: block !important;
 }
+.pdf-exporting strong {
+    color: #111111 !important;
+}
+.pdf-exporting span[style*="color: var(--accent)"],
+.pdf-exporting span[style*="color:var(--accent)"] {
+    color: #008855 !important;
+}
+.pdf-exporting span[style*="color: var(--accent-red)"],
+.pdf-exporting span[style*="color:var(--accent-red)"] {
+    color: #cc0000 !important;
+}
+.pdf-exporting span[style*="color: var(--text-muted)"],
+.pdf-exporting span[style*="color:var(--text-muted)"] {
+    color: #666666 !important;
+}
+.pdf-exporting div[style*="color: var(--text-muted)"],
+.pdf-exporting div[style*="color:var(--text-muted)"] {
+    color: #666666 !important;
+}
 
 /* Responsive Navigation & Grids */
 .nav-menu {
@@ -791,4 +810,93 @@ footer {
     .matches-grid {
         grid-template-columns: 1fr;
     }
+    th, td {
+        padding: 10px 8px !important;
+        font-size: 13.5px !important;
+    }
+    .btn-sm {
+        padding: 6px 12px !important;
+        font-size: 13px !important;
+    }
 }
+
+/* New Team Selector Styles */
+.match-teams-selector {
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.team-select-btn {
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 15px 10px;
+    width: 44%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+}
+
+.team-select-btn:hover:not([disabled]) {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: var(--primary);
+    transform: translateY(-2px);
+}
+
+.team-select-btn.selected {
+    background: rgba(170, 132, 20, 0.08) !important;
+    border-color: var(--primary) !important;
+    box-shadow: var(--shadow-glow);
+}
+
+.team-select-btn.selected .team-name {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.team-select-btn.selected .select-badge {
+    background: var(--primary-grad);
+    color: var(--text-dark);
+    opacity: 1;
+}
+
+.select-badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    background: rgba(0, 0, 0, 0.04);
+    color: var(--text-muted);
+    font-weight: 600;
+    transition: var(--transition);
+    opacity: 0.8;
+}
+
+.match-vs-selector {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 12%;
+    text-align: center;
+}
+
+.vs-text {
+    font-weight: 800;
+    font-size: 15px;
+    color: var(--text-muted);
+}
+
+.vs-time {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    white-space: nowrap;
+}
+

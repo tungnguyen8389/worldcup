@@ -17,26 +17,17 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $user_id = $_SESSION['user_id'];
 $match_id = isset($_POST['match_id']) ? (int)$_POST['match_id'] : 0;
-$home_score = isset($_POST['home_score']) ? $_POST['home_score'] : '';
-$away_score = isset($_POST['away_score']) ? $_POST['away_score'] : '';
+$predicted_team = isset($_POST['predicted_team']) ? trim($_POST['predicted_team']) : '';
 
-// Kiểm tra tính hợp lệ của điểm số
-if ($home_score === '' || $away_score === '') {
-    echo json_encode(['success' => false, 'message' => 'Vui lòng điền đầy đủ tỷ số!']);
-    exit;
-}
-
-$home_score = (int)$home_score;
-$away_score = (int)$away_score;
-
-if ($home_score < 0 || $away_score < 0) {
-    echo json_encode(['success' => false, 'message' => 'Tỷ số không thể là số âm!']);
+// Kiểm tra tính hợp lệ của lựa chọn đội
+if ($predicted_team !== 'home' && $predicted_team !== 'away') {
+    echo json_encode(['success' => false, 'message' => 'Lựa chọn đội dự đoán không hợp lệ!']);
     exit;
 }
 
 try {
     // Lấy thông tin trận đấu để kiểm tra trạng thái khóa
-    $stmt = $pdo->prepare("SELECT match_time, status FROM matches WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT match_time, status, home_team, away_team FROM matches WHERE id = ?");
     $stmt->execute([$match_id]);
     $match = $stmt->fetch();
 
@@ -58,26 +49,26 @@ try {
     }
 
     // 3. Tiến hành lưu dự đoán (Tạo mới hoặc Cập nhật)
-    $sql = "INSERT INTO predictions (user_id, match_id, predicted_home_score, predicted_away_score, created_at)
-            VALUES (:user_id, :match_id, :predicted_home_score, :predicted_away_score, CURRENT_TIMESTAMP)
+    $sql = "INSERT INTO predictions (user_id, match_id, predicted_team, created_at)
+            VALUES (:user_id, :match_id, :predicted_team, CURRENT_TIMESTAMP)
             ON DUPLICATE KEY UPDATE 
-                predicted_home_score = VALUES(predicted_home_score), 
-                predicted_away_score = VALUES(predicted_away_score),
+                predicted_team = VALUES(predicted_team), 
                 created_at = CURRENT_TIMESTAMP";
     
     $stmt_save = $pdo->prepare($sql);
     $stmt_save->execute([
         'user_id' => $user_id,
         'match_id' => $match_id,
-        'predicted_home_score' => $home_score,
-        'predicted_away_score' => $away_score
+        'predicted_team' => $predicted_team
     ]);
+
+    $team_name = ($predicted_team === 'home') ? $match['home_team'] : $match['away_team'];
 
     echo json_encode([
         'success' => true, 
-        'message' => 'Đã lưu dự đoán của bạn!',
-        'home' => $home_score,
-        'away' => $away_score
+        'message' => 'Đã lưu lựa chọn đội ' . $team_name . ' của bạn!',
+        'predicted_team' => $predicted_team,
+        'team_name' => $team_name
     ]);
 
 } catch (PDOException $e) {

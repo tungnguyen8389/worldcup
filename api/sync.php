@@ -22,6 +22,41 @@ $response = [
 ];
 
 try {
+    if (isset($_GET['recalc']) && $_GET['recalc'] == '1') {
+        $pdo->beginTransaction();
+        
+        // Lấy tất cả các trận đấu đã kết thúc
+        $sql_matches = "SELECT id, home_score, away_score, status, match_time, handicap 
+                        FROM matches 
+                        WHERE status IN ('FT', 'AET', 'PEN') AND home_score IS NOT NULL AND away_score IS NOT NULL";
+        $stmt_matches = $pdo->query($sql_matches);
+        $finished_matches = $stmt_matches->fetchAll();
+        
+        $recalcCount = 0;
+        $affectedDates = [];
+        foreach ($finished_matches as $m) {
+            $count = score_match_predictions($m['id'], $m['home_score'], $m['away_score'], (float)($m['handicap'] ?? 0.0));
+            $recalcCount += $count;
+            
+            $match_date = date('Y-m-d', strtotime($m['match_time']));
+            $affectedDates[$match_date] = true;
+        }
+        
+        $pdo->commit();
+        
+        // Cập nhật lại xếp hạng cho tất cả ngày bị ảnh hưởng
+        foreach (array_keys($affectedDates) as $date) {
+            update_rankings_for_date($date);
+        }
+        update_rankings_for_date(date('Y-m-d')); // Cập nhật ngày hôm nay nữa
+        
+        $response['success'] = true;
+        $response['message'] = "Đã tính toán lại toàn bộ điểm và xử phạt không dự đoán cho $recalcCount lượt dự đoán.";
+        $response['predictions_scored'] = $recalcCount;
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
     $apiKey = get_setting('api_key');
     $leagueId = get_setting('league_id', 1);
     $season = get_setting('season', 2026);
@@ -100,31 +135,16 @@ try {
 
     $response['matches_synced'] = $syncedCount;
 
-    // 2. Tính điểm cho các dự đoán chưa được chấm điểm của các trận đấu đã kết thúc
-    $sql_predictions = "SELECT p.*, m.home_score, m.away_score, m.status, m.match_time
-                        FROM predictions p
-                        INNER JOIN matches m ON p.match_id = m.id
-                        WHERE p.prediction_status = 0 AND m.status IN ('FT', 'AET', 'PEN')";
+    // 2. Chấm điểm các dự đoán và xử thua cho thành viên không dự đoán cho tất cả các trận đã kết thúc
+    $sql_finished_matches = "SELECT id, home_score, away_score, handicap FROM matches 
+                             WHERE status IN ('FT', 'AET', 'PEN') AND home_score IS NOT NULL AND away_score IS NOT NULL";
+    $stmt_finished_matches = $pdo->query($sql_finished_matches);
+    $finished_matches = $stmt_finished_matches->fetchAll();
     
-    $stmt_preds = $pdo->prepare($sql_predictions);
-    $stmt_preds->execute();
-    $pending_predictions = $stmt_preds->fetchAll();
-
     $scoredCount = 0;
-    foreach ($pending_predictions as $pred) {
-        $predId = $pred['id'];
-        $points = calculate_points(
-            $pred['predicted_home_score'],
-            $pred['predicted_away_score'],
-            $pred['home_score'],
-            $pred['away_score']
-        );
-
-        if ($points !== null) {
-            $stmt_update = $pdo->prepare("UPDATE predictions SET points_awarded = ?, prediction_status = 1 WHERE id = ?");
-            $stmt_update->execute([$points, $predId]);
-            $scoredCount++;
-        }
+    foreach ($finished_matches as $m) {
+        $count = score_match_predictions($m['id'], $m['home_score'], $m['away_score'], (float)($m['handicap'] ?? 0.0));
+        $scoredCount += $count;
     }
 
     $response['predictions_scored'] = $scoredCount;

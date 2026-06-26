@@ -500,6 +500,25 @@ footer {
 .pdf-exporting .pdf-only {
     display: block !important;
 }
+.pdf-exporting strong {
+    color: #111111 !important;
+}
+.pdf-exporting span[style*="color: var(--accent)"],
+.pdf-exporting span[style*="color:var(--accent)"] {
+    color: #008855 !important;
+}
+.pdf-exporting span[style*="color: var(--accent-red)"],
+.pdf-exporting span[style*="color:var(--accent-red)"] {
+    color: #cc0000 !important;
+}
+.pdf-exporting span[style*="color: var(--text-muted)"],
+.pdf-exporting span[style*="color:var(--text-muted)"] {
+    color: #666666 !important;
+}
+.pdf-exporting div[style*="color: var(--text-muted)"],
+.pdf-exporting div[style*="color:var(--text-muted)"] {
+    color: #666666 !important;
+}
 
 /* Flag Picker Modal Styling */
 .flag-picker-overlay {
@@ -734,6 +753,14 @@ footer {
 @media (max-width: 576px) {
     .grid-2col, .grid-3col {
         grid-template-columns: 1fr;
+    }
+    th, td {
+        padding: 10px 8px !important;
+        font-size: 13.5px !important;
+    }
+    .btn-sm {
+        padding: 6px 12px !important;
+        font-size: 13px !important;
     }
 }
 

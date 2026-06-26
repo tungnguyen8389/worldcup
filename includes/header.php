@@ -66,6 +66,9 @@ $current_page = basename($_SERVER['PHP_SELF']);
                         <li class="<?php echo $current_page == 'predictions.php' ? 'active' : ''; ?>">
                             <a href="<?php echo $path_prefix; ?>predictions.php"><i class="fa-solid fa-chart-line"></i> Lịch sử dự đoán</a>
                         </li>
+                        <li class="<?php echo $current_page == 'stats.php' ? 'active' : ''; ?>">
+                            <a href="<?php echo $path_prefix; ?>stats.php"><i class="fa-solid fa-chart-bar"></i> Thống kê</a>
+                        </li>
                         <li class="<?php echo $current_page == 'rules.php' ? 'active' : ''; ?>">
                             <a href="<?php echo $path_prefix; ?>rules.php"><i class="fa-solid fa-book-open"></i> Luật chơi</a>
                         </li>

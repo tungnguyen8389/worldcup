@@ -14,18 +14,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $api_key = trim($_POST['api_key'] ?? '');
     $league_id = (int)($_POST['league_id'] ?? 1);
     $season = (int)($_POST['season'] ?? 2026);
-    $p_exact = (int)($_POST['point_exact_score'] ?? 3);
-    $p_diff = (int)($_POST['point_goal_difference'] ?? 2);
-    $p_outcome = (int)($_POST['point_correct_outcome'] ?? 1);
     $reveal = isset($_POST['reveal_real_names']) ? 1 : 0;
     
     try {
         save_setting('api_key', $api_key);
         save_setting('league_id', $league_id);
         save_setting('season', $season);
-        save_setting('point_exact_score', $p_exact);
-        save_setting('point_goal_difference', $p_diff);
-        save_setting('point_correct_outcome', $p_outcome);
         save_setting('reveal_real_names', $reveal);
         
         $success = "Lưu cấu hình hệ thống thành công!";
@@ -38,9 +32,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 $api_key = get_setting('api_key');
 $league_id = get_setting('league_id', 1);
 $season = get_setting('season', 2026);
-$p_exact = get_setting('point_exact_score', 3);
-$p_diff = get_setting('point_goal_difference', 2);
-$p_outcome = get_setting('point_correct_outcome', 1);
 $reveal = get_setting('reveal_real_names', 0);
 
 // Lấy các số liệu thống kê thực tế cho dashboard admin
@@ -56,7 +47,8 @@ $finished_matches_count = $pdo->query("SELECT COUNT(*) FROM matches WHERE status
         <p style="color: var(--text-muted); font-size: 14px;">Quản lý cấu hình, chấm điểm và đối chiếu thông tin thành viên giải dự đoán.</p>
     </div>
     
-    <div style="display: flex; gap: 10px;">
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <button id="btn-recalc" class="btn btn-secondary btn-sm" style="background: rgba(212, 175, 55, 0.15); border: 1px solid var(--primary); color: var(--primary);"><i class="fa-solid fa-calculator"></i> Tính lại điểm & Xếp hạng</button>
         <button id="btn-sync-api" class="btn btn-primary btn-sm"><i class="fa-solid fa-arrows-rotate"></i> Đồng bộ API tự động</button>
     </div>
 </div>
@@ -65,7 +57,7 @@ $finished_matches_count = $pdo->query("SELECT COUNT(*) FROM matches WHERE status
 <div class="card" style="padding: 12px 20px; margin-bottom: 25px; display: flex; gap: 15px; flex-wrap: wrap; background: var(--card-bg);">
     <a href="dashboard.php" class="btn btn-primary btn-sm"><i class="fa-solid fa-sliders"></i> Cấu hình & Thống kê</a>
     <a href="matches.php" class="btn btn-secondary btn-sm" style="background: rgba(0,0,0,0.02);"><i class="fa-solid fa-futbol"></i> Quản lý trận đấu</a>
-    <a href="users.php" class="btn btn-secondary btn-sm" style="background: rgba(0,0,0,0.02);"><i class="fa-solid fa-users-gear"></i> Quản lý thành viên</a>
+    <a href="users.php" class="btn btn-secondary btn-sm" style="background: rgba(0,0,0,0.02);"><i class="fa-solid fa-users-gear"></i> Quản lý thành viên</a>`n    <a href="stats.php" class="btn btn-secondary btn-sm" style="background: rgba(212,175,55,0.08); border: 1px solid rgba(212,175,55,0.3); color: var(--primary);"><i class="fa-solid fa-chart-column"></i> B&#225;o c&#225;o th&#7889;ng k&#234;</a>
 </div>
 
 <!-- Grid Thống Kê Tổng Quan -->
@@ -143,26 +135,6 @@ $finished_matches_count = $pdo->query("SELECT COUNT(*) FROM matches WHERE status
         <div class="admin-meta-info" style="margin-top: 15px; background: rgba(170, 132, 20, 0.05); border-left: 3px solid var(--primary); padding: 12px; border-radius: 4px; font-size: 13.5px; color: var(--text-muted);">
             <i class="fa-solid fa-circle-info" style="color: var(--primary);"></i> Gợi ý: League ID mặc định của World Cup trong API-Football là <strong>1</strong>. Mùa giải sắp tới sẽ là năm diễn ra (ví dụ: 2026).
         </div>
-        
-        <div style="font-weight: 600; font-size: 15px; color: var(--primary); margin: 25px 0 15px 0; border-bottom: 1px solid var(--glass-border); padding-bottom: 5px;">
-            Cấu Hình Điểm Số
-        </div>
-        
-        <div class="grid-3col">
-            <div class="form-group">
-                <label>Đúng tỷ số</label>
-                <input type="number" name="point_exact_score" class="form-control" value="<?php echo htmlspecialchars($p_exact); ?>" required>
-            </div>
-            <div class="form-group">
-                <label>Đúng hiệu số</label>
-                <input type="number" name="point_goal_difference" class="form-control" value="<?php echo htmlspecialchars($p_diff); ?>" required>
-            </div>
-            <div class="form-group">
-                <label>Đúng kết quả</label>
-                <input type="number" name="point_correct_outcome" class="form-control" value="<?php echo htmlspecialchars($p_outcome); ?>" required>
-            </div>
-        </div>
-        
         <div style="font-weight: 600; font-size: 15px; color: var(--primary); margin: 25px 0 15px 0; border-bottom: 1px solid var(--glass-border); padding-bottom: 5px;">
             Chế Độ Riêng Tư
         </div>
@@ -184,6 +156,7 @@ $finished_matches_count = $pdo->query("SELECT COUNT(*) FROM matches WHERE status
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const btnSync = document.getElementById('btn-sync-api');
+    const btnRecalc = document.getElementById('btn-recalc');
     const syncCard = document.getElementById('sync-log-card');
     const syncStatus = document.getElementById('sync-status-text');
     const syncLog = document.getElementById('sync-log-message');
@@ -224,6 +197,50 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(err => {
                 btnSync.disabled = false;
                 btnSync.innerHTML = '<i class="fa-solid fa-arrows-rotate"></i> Đồng bộ API tự động';
+                
+                syncStatus.innerHTML = 'Lỗi kết nối!';
+                syncStatus.style.color = 'var(--accent-red)';
+                syncLog.innerHTML = '<span style="color: var(--accent-red);">Không thể kết nối đến script api/sync.php</span>';
+            });
+        });
+    }
+
+    if (btnRecalc) {
+        btnRecalc.addEventListener('click', () => {
+            if (!confirm('Bạn có chắc chắn muốn tính toán lại toàn bộ điểm số và xếp hạng của tất cả người chơi dựa trên tỷ lệ kèo chấp hiện tại?')) {
+                return;
+            }
+            btnRecalc.disabled = true;
+            btnRecalc.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tính toán...';
+            
+            syncCard.style.display = 'block';
+            syncStatus.innerHTML = 'Đang tính toán lại...';
+            syncStatus.style.color = 'var(--text-main)';
+            syncLog.innerHTML = 'Bắt đầu gửi yêu cầu tính toán lại điểm số toàn hệ thống...';
+            
+            fetch('../api/sync.php?recalc=1')
+            .then(res => res.json())
+            .then(data => {
+                btnRecalc.disabled = false;
+                btnRecalc.innerHTML = '<i class="fa-solid fa-calculator"></i> Tính lại điểm & Xếp hạng';
+                
+                if (data.success) {
+                    syncStatus.innerHTML = 'Thành công! <i class="fa-solid fa-circle-check"></i>';
+                    syncStatus.style.color = 'var(--accent)';
+                    syncLog.innerHTML = `<strong>Kết quả:</strong> ${data.message}`;
+                    
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                } else {
+                    syncStatus.innerHTML = 'Lỗi! <i class="fa-solid fa-circle-xmark"></i>';
+                    syncStatus.style.color = 'var(--accent-red)';
+                    syncLog.innerHTML = `<span style="color: var(--accent-red);">Lỗi chi tiết: ${data.message}</span>`;
+                }
+            })
+            .catch(err => {
+                btnRecalc.disabled = false;
+                btnRecalc.innerHTML = '<i class="fa-solid fa-calculator"></i> Tính lại điểm & Xếp hạng';
                 
                 syncStatus.innerHTML = 'Lỗi kết nối!';
                 syncStatus.style.color = 'var(--accent-red)';

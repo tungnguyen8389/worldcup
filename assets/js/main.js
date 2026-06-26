@@ -114,23 +114,60 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. Khởi tạo Bàn phím số dự đoán (Keypad Modal)
     setupNumericKeypad();
     
-    // 3. AJAX dự đoán tỷ số
+    // 3. Xử lý click chọn đội trong form dự đoán
+    const teamSelectBtns = document.querySelectorAll('.team-select-btn');
+    teamSelectBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (this.disabled) return;
+            
+            const form = this.closest('.prediction-form');
+            if (!form) return;
+            
+            // Bỏ chọn tất cả đội khác trong cùng form
+            form.querySelectorAll('.team-select-btn').forEach(b => b.classList.remove('selected'));
+            
+            // Chọn đội hiện tại
+            this.classList.add('selected');
+            
+            // Cập nhật input ẩn
+            const teamVal = this.getAttribute('data-team');
+            const hiddenInput = form.querySelector('.predicted-team-input');
+            if (hiddenInput) {
+                hiddenInput.value = teamVal;
+            }
+            
+            // Cập nhật text hiển thị tạm thời
+            const teamName = this.querySelector('.team-name').textContent;
+            const statusWrapper = form.querySelector('.pred-score-text');
+            if (statusWrapper) {
+                statusWrapper.innerHTML = `Bạn chọn: <strong style="color: var(--primary); font-size: 15px;">${teamName}</strong>`;
+                statusWrapper.style.borderStyle = 'solid';
+                statusWrapper.style.borderColor = 'rgba(170, 132, 20, 0.3)';
+            }
+            
+            // Kích hoạt nút submit
+            const submitBtn = form.querySelector('.btn-predict');
+            if (submitBtn) {
+                submitBtn.removeAttribute('disabled');
+            }
+        });
+    });
+
+    // 4. AJAX gửi dự đoán chọn đội lên máy chủ
     const forms = document.querySelectorAll('.prediction-form');
     forms.forEach(form => {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             const matchId = this.getAttribute('data-match-id');
-            const homeInput = this.querySelector('.home-score-input');
-            const awayInput = this.querySelector('.away-score-input');
+            const teamInput = this.querySelector('.predicted-team-input');
             const submitBtn = this.querySelector('.btn-predict');
             
-            const homeScore = homeInput.value.trim();
-            const awayScore = awayInput.value.trim();
-            
-            if (homeScore === '' || awayScore === '') {
-                showToast('Vui lòng điền đầy đủ tỷ số dự đoán!', 'error');
+            if (!teamInput || !teamInput.value) {
+                showToast('Vui lòng chọn một đội để dự đoán!', 'error');
                 return;
             }
+            
+            const predictedTeam = teamInput.value.trim();
             
             if (submitBtn) {
                 submitBtn.disabled = true;
@@ -139,8 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const formData = new FormData();
             formData.append('match_id', matchId);
-            formData.append('home_score', homeScore);
-            formData.append('away_score', awayScore);
+            formData.append('predicted_team', predictedTeam);
             
             // Lấy prefix đường dẫn tương đối
             const pathPrefix = document.body.getAttribute('data-path-prefix') || '';
@@ -159,10 +195,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.success) {
                     showToast(data.message, 'success');
                     
-                    // Cập nhật trạng thái text hiển thị dự đoán
-                    const statusWrapper = form.closest('.match-card').querySelector('.pred-score-text');
+                    // Cập nhật trạng thái text hiển thị dự đoán chính thức
+                    const statusWrapper = form.querySelector('.pred-score-text');
                     if (statusWrapper) {
-                        statusWrapper.innerHTML = `Bạn đoán: <strong style="color: var(--accent); font-size: 16px;">${data.home} - ${data.away}</strong>`;
+                        statusWrapper.innerHTML = `Bạn đã chọn: <strong style="color: var(--accent); font-size: 15px;">${data.team_name}</strong>`;
                         statusWrapper.style.borderStyle = 'solid';
                         statusWrapper.style.borderColor = 'rgba(0, 255, 170, 0.3)';
                     }
@@ -551,7 +587,8 @@ window.exportToPDF = function(elementId, filename) {
             useCORS: true,
             logging: false,
             letterRendering: true,
-            backgroundColor: '#ffffff'
+            backgroundColor: '#ffffff',
+            windowWidth: 1200
         },
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
