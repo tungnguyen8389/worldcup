@@ -228,8 +228,13 @@ foreach ($kpis as $k): ?>
 </div>
 
 <!-- ── LỊCH SỬ DỰ ĐOÁN ──────────────────────────── -->
-<div class="card">
-    <div class="card-title"><i class="fa-solid fa-list-check"></i> Lịch Sử Dự Đoán Chi Tiết</div>
+<div class="card" id="my-history-card">
+    <div class="card-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; width: 100%;">
+        <span><i class="fa-solid fa-list-check"></i> Lịch Sử Dự Đoán Chi Tiết</span>
+        <button type="button" onclick="exportToPDF('my-history-card', 'Lich_Su_Du_Doan_Ca_Nhan')" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 12.5px; display: inline-flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-file-pdf"></i> Xuất PDF
+        </button>
+    </div>
     <div class="table-responsive">
         <table>
             <thead><tr>

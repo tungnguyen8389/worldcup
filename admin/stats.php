@@ -209,7 +209,12 @@ foreach ($kpis as $k): ?>
 
 <!-- ── BẢNG XẾP HẠNG ĐẦY ĐỦ ─────────────────────── -->
 <div class="card">
-    <div class="card-title"><i class="fa-solid fa-ranking-star"></i> Bảng Xếp Hạng Toàn Bộ</div>
+    <div class="card-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; width: 100%;">
+        <span><i class="fa-solid fa-ranking-star"></i> Bảng Xếp Hạng Toàn Bộ</span>
+        <button type="button" onclick="exportToPDF('pdf-leaderboard-template', 'Bang_Xep_Hang_Toan_Bo')" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 12.5px; display: inline-flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-file-pdf"></i> Xuất PDF
+        </button>
+    </div>
     <div class="table-responsive">
         <table>
             <thead><tr>
@@ -355,7 +360,7 @@ foreach ($kpis as $k): ?>
     <div class="card-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; width: 100%;">
         <span><i class="fa-solid fa-file-invoice text-primary"></i> Chi tiết Dự đoán & Kết quả thành viên</span>
         <?php if ($selected_match): ?>
-        <button type="button" onclick="exportToPDF('admin-match-predictions-card', 'Danh_Sach_Thanh_Vien_Du_Doan_<?php echo htmlspecialchars($selected_match['home_team'] . '_vs_' . $selected_match['away_team']); ?>')" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 12.5px; display: inline-flex; align-items: center; gap: 6px;">
+        <button type="button" onclick="exportToPDF('pdf-match-predictions-template', 'Danh_Sach_Thanh_Vien_Du_Doan_<?php echo htmlspecialchars($selected_match['home_team'] . '_vs_' . $selected_match['away_team']); ?>')" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 12.5px; display: inline-flex; align-items: center; gap: 6px;">
             <i class="fa-solid fa-file-pdf"></i> Xuất PDF
         </button>
         <?php endif; ?>

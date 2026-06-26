@@ -739,14 +739,14 @@ window.showPreviewModal = function(htmlContent, filename) {
         const paper = document.getElementById('pdf-preview-modal-paper');
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
         
-        // Tạo container tạm khớp với scrollTop hiện tại để tránh lỗi cuộn trang của html2canvas
+        // Tạo container tạm thời và đặt ngoài màn hình để html2canvas chụp chuẩn xác
         const tempExportDiv = document.createElement('div');
         tempExportDiv.id = 'pdf-export-temp-container';
         tempExportDiv.style.position = 'absolute';
-        tempExportDiv.style.left = '0';
-        tempExportDiv.style.top = scrollTop + 'px';
+        tempExportDiv.style.left = '-9999px'; // Giấu sang bên trái ngoài màn hình
+        tempExportDiv.style.top = '0';
         tempExportDiv.style.width = '800px';
-        tempExportDiv.style.zIndex = '-9999';
+        tempExportDiv.style.zIndex = '1';
         tempExportDiv.style.background = '#ffffff';
         
         // Thêm rule CSS đặc biệt cho container tạm
@@ -781,7 +781,7 @@ window.showPreviewModal = function(htmlContent, filename) {
                 letterRendering: true,
                 backgroundColor: '#ffffff',
                 windowWidth: 800,
-                scrollY: scrollTop,
+                scrollY: 0, // Bắt buộc chụp từ tọa độ Y=0 để không bị trắng trang khi user cuộn chuột
                 scrollX: 0
             },
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
