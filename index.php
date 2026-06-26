@@ -169,6 +169,35 @@ if (!empty($top_5_ids)) {
 ?>
 
 <!-- Bảng Quỹ Liên Hoan Hài Hước -->
+<?php 
+    $multiplier = (int)get_setting('party_fund_per_loss', 20000);
+    $fund_target = (int)get_setting('party_fund_target', 3000000);
+    
+    $sponsors = [];
+    $total_calculated_fund = 0;
+    if (!empty($leaderboard)) {
+        foreach ($leaderboard as $u) {
+            $losses = (int)$u['loss_count'];
+            if ($losses > 0) {
+                $contrib = $losses * $multiplier;
+                $total_calculated_fund += $contrib;
+                $sponsors[] = [
+                    'name' => $u['nickname'],
+                    'real_name' => $u['real_name'],
+                    'losses' => $losses,
+                    'amount' => $contrib
+                ];
+            }
+        }
+        
+        // Sắp xếp theo số trận thua giảm dần (số điểm bị trừ cao nhất lên đầu)
+        usort($sponsors, function($a, $b) {
+            return $b['losses'] <=> $a['losses'];
+        });
+    }
+    
+    $percent = min(100, round(($total_calculated_fund / $fund_target) * 100));
+?>
 <div class="card party-fund-card" style="margin-bottom: 25px; background: #ffffff; border: 1px solid rgba(0, 0, 0, 0.08); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12); color: #1f2937;">
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 15px;">
         <div style="display: flex; align-items: center; gap: 12px;">
@@ -183,17 +212,12 @@ if (!empty($top_5_ids)) {
         <div style="text-align: right;">
             <span style="font-size: 12px; color: #4b5563; font-weight: 500;">Tổng Quỹ Hiện Tại:</span>
             <div style="font-size: 22px; font-weight: 900; color: #10b981; font-family: 'Outfit';">
-                <?php echo number_format((int)get_setting('party_fund_total', 1500000)); ?> VNĐ
+                <?php echo number_format($total_calculated_fund); ?> VNĐ
             </div>
         </div>
     </div>
 
     <!-- Progress Bar -->
-    <?php 
-        $fund_total = (int)get_setting('party_fund_total', 1500000);
-        $fund_target = (int)get_setting('party_fund_target', 3000000);
-        $percent = min(100, round(($fund_total / $fund_target) * 100));
-    ?>
     <div style="margin-bottom: 20px;">
         <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #374151; margin-bottom: 6px; font-weight: 600;">
             <span>Tiến trình nồi lẩu: <strong style="color: #10b981; font-size: 12.5px;"><?php echo $percent; ?>%</strong></span>
@@ -211,42 +235,45 @@ if (!empty($top_5_ids)) {
         </div>
         <div class="sponsors-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px;">
             <?php 
-                $sponsors_raw = get_setting('party_fund_sponsors', "Anh Tuấn - 500,000 (Đại Gia Lẩu Bò)\nChị Thảo - 300,000 (Nữ Hoàng Tôm Sú)\nĐức Huy - 200,000 (Chúa Tể Rau Muống)\nMinh Quân - 200,000 (Thần Cồn)");
-                $sponsors_lines = explode("\n", str_replace("\r", "", trim($sponsors_raw)));
-                $rank_badges = ['🥇', '🥈', '🥉', '🏅'];
-                $idx = 0;
-                foreach ($sponsors_lines as $line) {
-                    if (empty(trim($line))) continue;
-                    $parts = explode('-', $line);
-                    $name = trim($parts[0] ?? 'Ẩn danh');
-                    $rest = trim($parts[1] ?? '0');
-                    
-                    $amount_str = '';
-                    $title = '';
-                    if (preg_match('/([\d,]+)\s*(?:\((.*)\))?/', $rest, $matches)) {
-                        $amount_str = trim($matches[1]);
-                        $title = trim($matches[2] ?? '');
-                    } else {
-                        $amount_str = $rest;
-                    }
-                    
-                    $badge = $rank_badges[min(3, $idx)];
-                    $idx++;
+                if (empty($sponsors)) {
+                    echo '<p style="font-size: 13px; color: #666; font-style: italic; grid-column: 1/-1; text-align: center; margin: 10px 0;">Chưa có Mạnh Thường Quân nào (chưa ai đoán sai trận nào!).</p>';
+                } else {
+                    $rank_badges = ['🥇', '🥈', '🥉', '🏅'];
+                    $funny_titles = [
+                        0 => 'Chúa Tể Tiên Tri Ngược',
+                        1 => 'Nữ Hoàng Tôm Sú',
+                        2 => 'Chúa Tể Rau Muống',
+                        3 => 'Dũng Sĩ Chọn Trật',
+                        4 => 'Đại Sứ Hòa Bình',
+                        5 => 'Thần Cồn',
+                        6 => 'Tấm Lòng Vàng',
+                        7 => 'Chiến Thần Chọn Sai'
+                    ];
+                    $idx = 0;
+                    foreach ($sponsors as $s) {
+                        $badge = $rank_badges[min(3, $idx)];
+                        $title = $funny_titles[$idx] ?? 'Nhà Tài Trợ Lẩu';
+                        $display_name = $s['name'];
+                        if ($reveal_real_names == 1) {
+                            $display_name .= ' (' . $s['real_name'] . ')';
+                        }
+                        $idx++;
             ?>
                 <div class="sponsor-card" style="background: #f9fafb; border: 1px solid #e5e7eb; padding: 10px 12px; border-radius: 8px; display: flex; flex-direction: column; justify-content: center; position: relative; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
                     <div style="font-size: 13.5px; font-weight: 700; display: flex; align-items: center; gap: 6px; color: #1f2937;">
-                        <span><?php echo $badge; ?></span> <?php echo htmlspecialchars($name); ?>
+                        <span><?php echo $badge; ?></span> <?php echo htmlspecialchars($display_name); ?>
                     </div>
                     <div style="font-size: 12.5px; color: #059669; font-weight: 800; margin-top: 2px;">
-                        +<?php echo htmlspecialchars($amount_str); ?> VNĐ
+                        +<?php echo number_format($s['amount']); ?> VNĐ
                     </div>
-                    <?php if ($title): ?>
-                        <div style="font-size: 10.5px; color: #d97706; font-style: italic; margin-top: 5px; background: #fef3c7; padding: 2px 6px; border-radius: 4px; width: fit-content; border: 1px solid #fde68a; font-weight: 600;">
-                            <?php echo htmlspecialchars($title); ?>
-                        </div>
-                    <?php endif; ?>
+                    <div style="font-size: 10.5px; color: #d97706; font-style: italic; margin-top: 5px; background: #fef3c7; padding: 2px 6px; border-radius: 4px; width: fit-content; border: 1px solid #fde68a; font-weight: 600;">
+                        <?php echo htmlspecialchars($title); ?> (<?php echo $s['losses']; ?>đ)
+                    </div>
                 </div>
-            <?php } ?>
+            <?php 
+                    }
+                } 
+            ?>
         </div>
     </div>
 </div>
