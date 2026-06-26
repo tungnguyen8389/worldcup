@@ -169,20 +169,20 @@ if (!empty($top_5_ids)) {
 ?>
 
 <!-- Bảng Quỹ Liên Hoan Hài Hước -->
-<div class="card party-fund-card" style="margin-bottom: 25px; background: linear-gradient(135deg, rgba(20, 45, 30, 0.45) 0%, rgba(12, 18, 14, 0.7) 100%); border: 1px solid rgba(212, 175, 55, 0.2); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+<div class="card party-fund-card" style="margin-bottom: 25px; background: linear-gradient(135deg, #ffffff 0%, #f8faf9 100%); border: 1px solid rgba(0, 0, 0, 0.08); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12); color: #1a1a1a;">
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 15px;">
         <div style="display: flex; align-items: center; gap: 12px;">
-            <div class="hotpot-icon-wrapper" style="font-size: 28px; color: #ff6b6b; animation: float 3s ease-in-out infinite;">
+            <div class="hotpot-icon-wrapper" style="font-size: 28px; color: #ff4757; animation: float 3s ease-in-out infinite;">
                 <i class="fa-solid fa-fire-burner"></i>
             </div>
             <div>
-                <h3 style="color: var(--primary); font-family: 'Outfit'; font-weight: 800; font-size: 17px; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">NỒI LẨU TIÊN TRI - QUỸ LIÊN HOAN NHÓM</h3>
-                <p style="color: var(--text-muted); font-size: 12.5px; margin: 2px 0 0 0;">Góp sức cho nồi lẩu World Cup thêm tôm thịt!</p>
+                <h3 style="color: #0e3b20; font-family: 'Outfit'; font-weight: 800; font-size: 17px; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">NỒI LẨU TIÊN TRI - QUỸ LIÊN HOAN NHÓM</h3>
+                <p style="color: #555555; font-size: 12.5px; margin: 2px 0 0 0; font-weight: 500;">Góp sức cho nồi lẩu World Cup thêm tôm thịt!</p>
             </div>
         </div>
         <div style="text-align: right;">
-            <span style="font-size: 12px; color: var(--text-muted);">Tổng Quỹ Hiện Tại:</span>
-            <div style="font-size: 20px; font-weight: 800; color: var(--accent); font-family: 'Outfit';">
+            <span style="font-size: 12px; color: #666666; font-weight: 500;">Tổng Quỹ Hiện Tại:</span>
+            <div style="font-size: 22px; font-weight: 900; color: #00aa66; font-family: 'Outfit';">
                 <?php echo number_format((int)get_setting('party_fund_total', 1500000)); ?> VNĐ
             </div>
         </div>
@@ -195,19 +195,19 @@ if (!empty($top_5_ids)) {
         $percent = min(100, round(($fund_total / $fund_target) * 100));
     ?>
     <div style="margin-bottom: 20px;">
-        <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: var(--text-muted); margin-bottom: 6px;">
-            <span>Tiến trình nồi lẩu: <strong><?php echo $percent; ?>%</strong></span>
+        <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #444444; margin-bottom: 6px; font-weight: 600;">
+            <span>Tiến trình nồi lẩu: <strong style="color: #00aa66; font-size: 12.5px;"><?php echo $percent; ?>%</strong></span>
             <span>Mục tiêu lẩu đầy đủ: <strong><?php echo number_format($fund_target); ?> VNĐ</strong></span>
         </div>
-        <div class="progress-bar-container" style="width: 100%; height: 10px; background: rgba(255, 255, 255, 0.03); border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);">
-            <div class="progress-bar-fill" style="width: <?php echo $percent; ?>%; height: 100%; background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%); border-radius: 10px; box-shadow: 0 0 10px rgba(0, 255, 170, 0.3);"></div>
+        <div class="progress-bar-container" style="width: 100%; height: 11px; background: #e9ecef; border-radius: 10px; overflow: hidden; border: 1px solid rgba(0,0,0,0.06);">
+            <div class="progress-bar-fill" style="width: <?php echo $percent; ?>%; height: 100%; background: linear-gradient(90deg, #ffd43b 0%, #00cc77 100%); border-radius: 10px; box-shadow: 0 2px 6px rgba(0, 204, 119, 0.2);"></div>
         </div>
     </div>
 
     <!-- Danh sách Mạnh Thường Quân -->
-    <div style="border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 15px;">
-        <div style="font-size: 12px; font-weight: bold; color: var(--primary); text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; letter-spacing: 0.5px;">
-            <i class="fa-solid fa-crown" style="color: #ff9f43;"></i> Bảng Danh Dự Mạnh Thường Quân (Đóng Góp Nồi Lẩu)
+    <div style="border-top: 1px solid #e9ecef; padding-top: 15px;">
+        <div style="font-size: 12.5px; font-weight: 800; color: #0e3b20; text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; letter-spacing: 0.5px;">
+            <i class="fa-solid fa-crown" style="color: #ffa502;"></i> Bảng Danh Dự Mạnh Thường Quân (Đóng Góp Nồi Lẩu)
         </div>
         <div class="sponsors-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px;">
             <?php 
@@ -233,15 +233,15 @@ if (!empty($top_5_ids)) {
                     $badge = $rank_badges[min(3, $idx)];
                     $idx++;
             ?>
-                <div class="sponsor-card" style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255,255,255,0.03); padding: 10px 12px; border-radius: 8px; display: flex; flex-direction: column; justify-content: center; position: relative;">
-                    <div style="font-size: 13.5px; font-weight: 700; display: flex; align-items: center; gap: 6px; color: var(--text-main);">
+                <div class="sponsor-card" style="background: #f8f9fa; border: 1px solid rgba(0,0,0,0.06); padding: 10px 12px; border-radius: 8px; display: flex; flex-direction: column; justify-content: center; position: relative; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                    <div style="font-size: 13.5px; font-weight: 700; display: flex; align-items: center; gap: 6px; color: #2b2d42;">
                         <span><?php echo $badge; ?></span> <?php echo htmlspecialchars($name); ?>
                     </div>
-                    <div style="font-size: 12px; color: var(--accent); font-weight: bold; margin-top: 2px;">
+                    <div style="font-size: 12.5px; color: #00aa66; font-weight: 800; margin-top: 2px;">
                         +<?php echo htmlspecialchars($amount_str); ?> VNĐ
                     </div>
                     <?php if ($title): ?>
-                        <div style="font-size: 10.5px; color: #ff9f43; font-style: italic; margin-top: 5px; background: rgba(255, 159, 67, 0.08); padding: 2px 6px; border-radius: 4px; width: fit-content; border: 1px solid rgba(255, 159, 67, 0.15);">
+                        <div style="font-size: 10.5px; color: #d97706; font-style: italic; margin-top: 5px; background: rgba(217, 119, 6, 0.08); padding: 2px 6px; border-radius: 4px; width: fit-content; border: 1px solid rgba(217, 119, 6, 0.15); font-weight: 600;">
                             <?php echo htmlspecialchars($title); ?>
                         </div>
                     <?php endif; ?>
