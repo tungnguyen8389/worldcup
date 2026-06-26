@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Đang Phát Triển | World Cup Predict</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Plus+Jakarta+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #08120a;
+            --primary: #d4af37; /* FIFA Gold */
+            --primary-rgb: 212, 175, 55;
+            --accent: #00ffaa;   /* Neon green */
+            --accent-rgb: 0, 255, 170;
+            --text-main: #f0f4f1;
+            --text-muted: #8fa095;
+            --card-bg: rgba(14, 30, 20, 0.45);
+            --border-color: rgba(212, 175, 55, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(12, 45, 25, 0.6) 0%, transparent 45%),
+                radial-gradient(circle at 90% 80%, rgba(20, 30, 45, 0.5) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, #08120a 0%, #030804 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Background grid overlay */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.008) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(255, 255, 255, 0.008) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Abstract glowing blobs */
+        .glowing-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.15;
+            z-index: 0;
+            animation: pulse-glow 8s infinite alternate ease-in-out;
+        }
+
+        .blob-1 {
+            width: 400px;
+            height: 400px;
+            background: rgba(var(--primary-rgb), 0.6);
+            top: -100px;
+            left: -100px;
+        }
+
+        .blob-2 {
+            width: 500px;
+            height: 500px;
+            background: rgba(var(--accent-rgb), 0.45);
+            bottom: -150px;
+            right: -100px;
+            animation-delay: -3s;
+        }
+
+        @keyframes pulse-glow {
+            0% { transform: scale(1) translate(0, 0); opacity: 0.12; }
+            100% { transform: scale(1.15) translate(30px, 20px); opacity: 0.22; }
+        }
+
+        /* Maintenance Card */
+        .maintenance-card {
+            width: 90%;
+            max-width: 580px;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 40px 30px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 
+                        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            position: relative;
+            z-index: 10;
+            animation: card-appear 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes card-appear {
+            0% { transform: translateY(40px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Football / Trophy Icon */
+        .icon-wrapper {
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(135deg, rgba(var(--primary-rgb), 0.2) 0%, rgba(var(--primary-rgb), 0.03) 100%);
+            border: 1px solid rgba(var(--primary-rgb), 0.35);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px auto;
+            position: relative;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .icon-wrapper::after {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            border-radius: 50%;
+            border: 1px dashed rgba(var(--primary-rgb), 0.25);
+            animation: rotate-dashed 20s linear infinite;
+        }
+
+        @keyframes rotate-dashed {
+            100% { transform: rotate(360deg); }
+        }
+
+        .icon-wrapper i {
+            font-size: 42px;
+            color: var(--primary);
+            filter: drop-shadow(0 0 10px rgba(var(--primary-rgb), 0.6));
+            animation: pulse-icon 2s infinite ease-in-out;
+        }
+
+        @keyframes pulse-icon {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(var(--primary-rgb), 0.5)); }
+            50% { transform: scale(1.08); filter: drop-shadow(0 0 20px rgba(var(--primary-rgb), 0.8)); }
+        }
+
+        /* Typography */
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #ffffff 30%, #d4af37 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(var(--accent-rgb), 0.1);
+            border: 1px solid rgba(var(--accent-rgb), 0.25);
+            color: var(--accent);
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 24px;
+        }
+
+        .badge span {
+            width: 6px;
+            height: 6px;
+            background-color: var(--accent);
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 8px var(--accent);
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        p.desc {
+            font-size: 15.5px;
+            line-height: 1.6;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            padding: 0 10px;
+        }
+
+        /* Progress Loader */
+        .progress-container {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            height: 6px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 35px;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
+            width: 40%;
+            border-radius: 10px;
+            position: absolute;
+            animation: loading-flow 2.5s infinite ease-in-out;
+            box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.5);
+        }
+
+        @keyframes loading-flow {
+            0% { left: -40%; width: 30%; }
+            50% { width: 45%; }
+            100% { left: 110%; width: 25%; }
+        }
+
+        /* Social / Info Links */
+        .info-footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 25px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .info-item i {
+            color: var(--primary);
+            font-size: 14px;
+        }
+
+        .info-item:hover {
+            color: var(--text-main);
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .maintenance-card {
+                padding: 30px 20px;
+            }
+            h1 {
+                font-size: 24px;
+            }
+            p.desc {
+                font-size: 14px;
+            }
+            .info-footer {
+                flex-direction: column;
+                align-items: center;
+                gap: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Glowing Background Blobs -->
+    <div class="glowing-blob blob-1"></div>
+    <div class="glowing-blob blob-2"></div>
+
+    <!-- Main Card -->
+    <div class="maintenance-card">
+        
+        <!-- Status Badge -->
+        <div class="badge">
+            <span></span> Đang cấu hình hệ thống
+        </div>
+
+        <!-- Pulse Icon Wrapper -->
+        <div class="icon-wrapper">
+            <i class="fa-solid fa-trophy"></i>
+        </div>
+
+        <!-- Title -->
+        <h1>World Cup Predict</h1>
+        
+        <!-- Description -->
+        <p class="desc">
+            Hệ thống dự đoán tỉ số World Cup đang được phát triển và nâng cấp nhằm mang lại trải nghiệm tốt nhất. Chúng tôi sẽ sớm quay trở lại hoạt động. Xin vui lòng quay lại sau!
+        </p>
+
+        <!-- Animated Progress Bar -->
+        <div class="progress-container">
+            <div class="progress-bar"></div>
+        </div>
+
+        <!-- Footer / Contact Info -->
+        <div class="info-footer">
+            <div class="info-item">
+                <i class="fa-solid fa-code"></i>
+                <span>Phiên bản 2.0.0</span>
+            </div>
+            <div class="info-item">
+                <i class="fa-solid fa-clock"></i>
+                <span>Thời gian dự kiến: Sớm nhất</span>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
