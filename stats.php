@@ -17,6 +17,12 @@ $profile = $pdo->prepare("SELECT * FROM users WHERE id=?");
 $profile->execute([$uid]);
 $me = $profile->fetch();
 
+if (!$me) {
+    session_destroy();
+    header("Location: login.php");
+    exit;
+}
+
 $stats = $pdo->prepare("
     SELECT
         COUNT(CASE WHEN p.prediction_status=1 THEN 1 END)             AS played,
@@ -29,6 +35,15 @@ $stats = $pdo->prepare("
 ");
 $stats->execute([$uid]);
 $s = $stats->fetch();
+
+// Cast stats values to integers/floats for safety and type consistency
+$s['total_pts'] = (int)($s['total_pts'] ?? 0);
+$s['played'] = (int)($s['played'] ?? 0);
+$s['wins'] = (int)($s['wins'] ?? 0);
+$s['losses'] = (int)($s['losses'] ?? 0);
+$s['draws'] = (int)($s['draws'] ?? 0);
+$s['total_pred'] = (int)($s['total_pred'] ?? 0);
+
 $win_rate = $s['played'] > 0 ? round($s['wins']/$s['played']*100) : 0;
 
 // 2. Xếp hạng hiện tại
@@ -80,7 +95,7 @@ $all_users = $pdo->query("
     FROM users u LEFT JOIN predictions p ON u.id=p.user_id
     WHERE u.role='user' GROUP BY u.id
 ")->fetchAll();
-$all_pts = array_column($all_users,'tp');
+$all_pts = array_map('intval', array_column($all_users,'tp'));
 $avg_pts = count($all_pts) > 0 ? round(array_sum($all_pts)/count($all_pts),1) : 0;
 $above_avg = count(array_filter($all_pts, function($x) use ($s) {
     return $x < $s['total_pts'];
