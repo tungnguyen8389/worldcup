@@ -19,7 +19,7 @@ require_login();
         <h3 style="color: #fff; margin: 30px 0 10px 0; font-size: 18px; display: flex; align-items: center; gap: 8px;">
             <i class="fa-solid fa-calculator text-primary" style="color: var(--primary);"></i> 2. Cơ chế Dự đoán & Tính điểm (Scoring System)
         </h3>
-        <p>Mỗi trận đấu sẽ được Ban tổ chức áp dụng một tỷ lệ <strong>kèo chấp (Handicap)</strong>. Bạn sẽ đưa ra dự đoán bằng cách chọn đội giành chiến thắng sau khi áp dụng tỷ lệ kèo chấp này.</p>
+        <p>Mỗi trận đấu sẽ được Ban tổ chức áp dụng một <strong>tỷ lệ chấp vui (Handicap)</strong>. Bạn sẽ đưa ra dự đoán bằng cách chọn đội giành chiến thắng sau khi áp dụng tỷ lệ chấp vui này.</p>
         <p>Điểm số và kết quả thắng/thua được tính dựa trên kết quả chính thức của trận đấu (gồm 90 phút thi đấu chính thức và hiệp phụ nếu có, không tính loạt sút luân lưu 11m):</p>
         
         <div class="table-responsive" style="margin-top: 15px; margin-bottom: 20px;">
@@ -33,17 +33,17 @@ require_login();
                 </thead>
                 <tbody>
                     <tr>
-                        <td><strong>Đoán đúng đội thắng kèo</strong></td>
+                        <td><strong>Đoán đúng đội thắng (sau điểm chấp)</strong></td>
                         <td style="text-align: center; color: var(--accent); font-weight: bold; font-size: 18px;">+1</td>
                         <td><span style="color: var(--accent); font-weight: bold;">Thắng (Win)</span></td>
                     </tr>
                     <tr>
-                        <td><strong>Hòa kèo</strong> (điểm số sau handicap bằng tỷ số đội khách)</td>
+                        <td><strong>Hòa điểm</strong> (điểm số sau handicap bằng tỷ số đội khách)</td>
                         <td style="text-align: center; color: var(--text-muted); font-weight: bold; font-size: 18px;">0</td>
                         <td><span style="color: var(--text-muted);">Hòa (Draw)</span></td>
                     </tr>
                     <tr>
-                        <td><strong>Đoán sai đội thắng kèo</strong></td>
+                        <td><strong>Đoán sai đội thắng (sau điểm chấp)</strong></td>
                         <td style="text-align: center; color: var(--accent-red); font-weight: bold; font-size: 18px;">-1</td>
                         <td><span style="color: var(--accent-red); font-weight: bold;">Thua (Loss)</span></td>
                     </tr>
@@ -55,7 +55,7 @@ require_login();
             <strong>Ví dụ minh họa:</strong> Trận đấu giữa <strong>Brazil vs Cameroon</strong>, Brazil chấp <strong>1.5</strong> bàn (Handicap = 1.5). Tỷ số thực tế là Brazil <strong>2 - 1</strong> Cameroon.
             <ul style="margin-left: 20px; margin-top: 5px; list-style-type: disc;">
                 <li>Điểm điều chỉnh của Brazil = 2 - 1.5 = 0.5 bàn.</li>
-                <li>So sánh: 0.5 (Brazil) &lt; 1 (Cameroon) &rarr; Cameroon thắng kèo.</li>
+                <li>So sánh: 0.5 (Brazil) &lt; 1 (Cameroon) &rarr; Cameroon thắng cuộc.</li>
                 <li>Nếu bạn chọn <strong>Cameroon</strong>: Bạn được <strong>+1 điểm</strong>.</li>
                 <li>Nếu bạn chọn <strong>Brazil</strong>: Bạn bị <strong>-1 điểm</strong>.</li>
             </ul>
@@ -67,7 +67,7 @@ require_login();
         <p>Bảng xếp hạng chung cuộc và hàng ngày sẽ được ưu tiên sắp xếp theo thứ tự các tiêu chí sau:</p>
         <ol style="margin-left: 20px; margin-top: 10px;">
             <li><strong>Tổng điểm số:</strong> Thành viên có tổng số điểm cao hơn xếp trên.</li>
-            <li><strong>Số trận thắng kèo (Win):</strong> Nếu bằng điểm, thành viên có số trận thắng kèo nhiều hơn sẽ xếp trên.</li>
+            <li><strong>Số trận đoán đúng (Win):</strong> Nếu bằng điểm, thành viên có số trận đoán đúng nhiều hơn sẽ xếp trên.</li>
             <li><strong>Thời gian dự đoán sớm hơn:</strong> Nếu tiếp tục bằng nhau về cả 2 tiêu chí trên, thành viên có <strong>tổng thời gian hoàn thành dự đoán sớm hơn</strong> (tổng thời gian tạo/cập nhật cuối cùng của các dự đoán nhỏ hơn) sẽ được xếp hạng cao hơn.</li>
             <li><strong>Tên hiển thị (Nickname):</strong> Nếu tất cả các tiêu chí trên vẫn trùng khớp hoàn hảo, thứ tự xếp hạng sẽ được phân theo bảng chữ cái của Nickname.</li>
         </ol>

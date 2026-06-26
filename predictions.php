@@ -701,7 +701,7 @@ $personal_history = $stmt_pers->fetchAll();
                             <i class="fa-solid fa-calendar-days"></i> <?php echo format_match_time($selected_match['match_time']); ?>
                         </div>
                         <div class="handicap-badge">
-                            <i class="fa-solid fa-scale-balanced"></i> Kèo chấp: 
+                            <i class="fa-solid fa-scale-balanced"></i> Tỷ lệ chấp vui: 
                             <strong>
                                 <?php 
                                 $hc = (float)($selected_match['handicap'] ?? 0.0);
@@ -776,18 +776,18 @@ $personal_history = $stmt_pers->fetchAll();
                                             echo '<span style="color: var(--text-muted); font-size: 12px;"><i class="fa-solid fa-lock" style="font-size: 10px;"></i> Ẩn</span>';
                                         } elseif ($gp['points_awarded'] !== null) {
                                             if ($gp['points_awarded'] > 0) {
-                                                echo '<span class="result-status-badge result-win"><i class="fa-solid fa-circle-check"></i> Thắng kèo</span>';
+                                                echo '<span class="result-status-badge result-win"><i class="fa-solid fa-circle-check"></i> Tiên tri đúng</span>';
                                             } elseif ($gp['points_awarded'] < 0) {
                                                 if (empty($gp['predicted_team'])) {
                                                     echo '<span class="result-status-badge result-lose"><i class="fa-solid fa-ban"></i> Thua (Không dự đoán)</span>';
                                                 } else {
-                                                    echo '<span class="result-status-badge result-lose"><i class="fa-solid fa-circle-xmark"></i> Thua kèo</span>';
+                                                    echo '<span class="result-status-badge result-lose"><i class="fa-solid fa-circle-xmark"></i> Tiên tri sai</span>';
                                                 }
                                             } else {
-                                                echo '<span class="result-status-badge result-draw"><i class="fa-solid fa-circle-minus"></i> Hòa kèo</span>';
+                                                echo '<span class="result-status-badge result-draw"><i class="fa-solid fa-circle-minus"></i> Hòa điểm</span>';
                                             }
                                         } elseif ($match_finished) {
-                                            echo '<span class="result-status-badge result-lose"><i class="fa-solid fa-circle-xmark"></i> Thua kèo</span>';
+                                            echo '<span class="result-status-badge result-lose"><i class="fa-solid fa-circle-xmark"></i> Tiên tri sai</span>';
                                         } else {
                                             echo '<span style="color: var(--text-muted); font-size: 12px;">—</span>';
                                         }
@@ -903,7 +903,7 @@ $personal_history = $stmt_pers->fetchAll();
                                 </div>
                                 
                                 <div style="color: var(--text-muted);">
-                                    Kèo: <strong style="color: var(--accent); font-weight: 600;">
+                                    Chấp vui: <strong style="color: var(--accent); font-weight: 600;">
                                         <?php 
                                         $hc = (float)($ph['handicap'] ?? 0.0);
                                         if ($hc > 0) {

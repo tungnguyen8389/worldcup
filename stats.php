@@ -130,7 +130,7 @@ $kpis = [
     ['icon'=>'fa-gamepad',         'color'=>'#4facfe', 'val'=>$s['total_pred'],   'label'=>'Đã dự đoán'],
     ['icon'=>'fa-circle-check',    'color'=>'#00cc77', 'val'=>$s['wins'],         'label'=>'Trận thắng'],
     ['icon'=>'fa-circle-xmark',    'color'=>'#ff6b6b', 'val'=>$s['losses'],       'label'=>'Trận thua'],
-    ['icon'=>'fa-handshake',       'color'=>'#ff9f43', 'val'=>$s['draws'],        'label'=>'Trận hòa kèo'],
+    ['icon'=>'fa-handshake',       'color'=>'#ff9f43', 'val'=>$s['draws'],        'label'=>'Trận hòa điểm'],
     ['icon'=>'fa-fire-flame-curved','color'=>'#f857a6', 'val'=>$streak,           'label'=>'Chuỗi thắng hiện tại'],
     ['icon'=>'fa-star',            'color'=>'#d4af37', 'val'=>$best_streak,       'label'=>'Chuỗi thắng dài nhất'],
 ];
@@ -212,7 +212,7 @@ foreach ($kpis as $k): ?>
         <table>
             <thead><tr>
                 <th>Trận đấu</th>
-                <th style="text-align:center;">Kèo chấp</th>
+                <th style="text-align:center;">Điểm chấp vui</th>
                 <th style="text-align:center;">Tỷ số</th>
                 <th style="text-align:center;">Đội chọn</th>
                 <th style="text-align:center;">Thời gian đặt</th>
@@ -234,7 +234,7 @@ foreach ($kpis as $k): ?>
                         $badge = '<span style="background:rgba(255,107,107,.15);color:#ff6b6b;padding:3px 10px;border-radius:20px;font-weight:700;font-size:13px;">-1 Thua ✗</span>';
                     }
                 }
-                else                   { $badge = '<span style="background:rgba(255,159,67,.15);color:#ff9f43;padding:3px 10px;border-radius:20px;font-weight:700;font-size:13px;">0 Hòa kèo</span>'; }
+                else                   { $badge = '<span style="background:rgba(255,159,67,.15);color:#ff9f43;padding:3px 10px;border-radius:20px;font-weight:700;font-size:13px;">0 Hòa điểm</span>'; }
             ?>
             <tr>
                 <td>
@@ -293,7 +293,7 @@ foreach ($kpis as $k): ?>
     new Chart(document.getElementById('chartPie'),{
         type:'doughnut',
         data:{
-            labels:['Thắng','Thua','Hòa kèo'],
+            labels:['Thắng','Thua','Hòa điểm'],
             datasets:[{
                 data:[<?= $s['wins'] ?>,<?= $s['losses'] ?>,<?= $s['draws'] ?>],
                 backgroundColor:['#00cc7788','#ff6b6b88','#ff9f4388'],

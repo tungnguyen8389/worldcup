@@ -168,6 +168,96 @@ if (!empty($top_5_ids)) {
 }
 ?>
 
+<!-- Bảng Quỹ Liên Hoan Hài Hước -->
+<div class="card party-fund-card" style="margin-bottom: 25px; background: linear-gradient(135deg, rgba(20, 45, 30, 0.45) 0%, rgba(12, 18, 14, 0.7) 100%); border: 1px solid rgba(212, 175, 55, 0.2); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 15px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="hotpot-icon-wrapper" style="font-size: 28px; color: #ff6b6b; animation: float 3s ease-in-out infinite;">
+                <i class="fa-solid fa-fire-burner"></i>
+            </div>
+            <div>
+                <h3 style="color: var(--primary); font-family: 'Outfit'; font-weight: 800; font-size: 17px; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">NỒI LẨU TIÊN TRI - QUỸ LIÊN HOAN NHÓM</h3>
+                <p style="color: var(--text-muted); font-size: 12.5px; margin: 2px 0 0 0;">Góp sức cho nồi lẩu World Cup thêm tôm thịt!</p>
+            </div>
+        </div>
+        <div style="text-align: right;">
+            <span style="font-size: 12px; color: var(--text-muted);">Tổng Quỹ Hiện Tại:</span>
+            <div style="font-size: 20px; font-weight: 800; color: var(--accent); font-family: 'Outfit';">
+                <?php echo number_format((int)get_setting('party_fund_total', 1500000)); ?> VNĐ
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <?php 
+        $fund_total = (int)get_setting('party_fund_total', 1500000);
+        $fund_target = (int)get_setting('party_fund_target', 3000000);
+        $percent = min(100, round(($fund_total / $fund_target) * 100));
+    ?>
+    <div style="margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: var(--text-muted); margin-bottom: 6px;">
+            <span>Tiến trình nồi lẩu: <strong><?php echo $percent; ?>%</strong></span>
+            <span>Mục tiêu lẩu đầy đủ: <strong><?php echo number_format($fund_target); ?> VNĐ</strong></span>
+        </div>
+        <div class="progress-bar-container" style="width: 100%; height: 10px; background: rgba(255, 255, 255, 0.03); border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);">
+            <div class="progress-bar-fill" style="width: <?php echo $percent; ?>%; height: 100%; background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%); border-radius: 10px; box-shadow: 0 0 10px rgba(0, 255, 170, 0.3);"></div>
+        </div>
+    </div>
+
+    <!-- Danh sách Mạnh Thường Quân -->
+    <div style="border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 15px;">
+        <div style="font-size: 12px; font-weight: bold; color: var(--primary); text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; letter-spacing: 0.5px;">
+            <i class="fa-solid fa-crown" style="color: #ff9f43;"></i> Bảng Danh Dự Mạnh Thường Quân (Đóng Góp Nồi Lẩu)
+        </div>
+        <div class="sponsors-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px;">
+            <?php 
+                $sponsors_raw = get_setting('party_fund_sponsors', "Anh Tuấn - 500,000 (Đại Gia Lẩu Bò)\nChị Thảo - 300,000 (Nữ Hoàng Tôm Sú)\nĐức Huy - 200,000 (Chúa Tể Rau Muống)\nMinh Quân - 200,000 (Thần Cồn)");
+                $sponsors_lines = explode("\n", str_replace("\r", "", trim($sponsors_raw)));
+                $rank_badges = ['🥇', '🥈', '🥉', '🏅'];
+                $idx = 0;
+                foreach ($sponsors_lines as $line) {
+                    if (empty(trim($line))) continue;
+                    $parts = explode('-', $line);
+                    $name = trim($parts[0] ?? 'Ẩn danh');
+                    $rest = trim($parts[1] ?? '0');
+                    
+                    $amount_str = '';
+                    $title = '';
+                    if (preg_match('/([\d,]+)\s*(?:\((.*)\))?/', $rest, $matches)) {
+                        $amount_str = trim($matches[1]);
+                        $title = trim($matches[2] ?? '');
+                    } else {
+                        $amount_str = $rest;
+                    }
+                    
+                    $badge = $rank_badges[min(3, $idx)];
+                    $idx++;
+            ?>
+                <div class="sponsor-card" style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255,255,255,0.03); padding: 10px 12px; border-radius: 8px; display: flex; flex-direction: column; justify-content: center; position: relative;">
+                    <div style="font-size: 13.5px; font-weight: 700; display: flex; align-items: center; gap: 6px; color: var(--text-main);">
+                        <span><?php echo $badge; ?></span> <?php echo htmlspecialchars($name); ?>
+                    </div>
+                    <div style="font-size: 12px; color: var(--accent); font-weight: bold; margin-top: 2px;">
+                        +<?php echo htmlspecialchars($amount_str); ?> VNĐ
+                    </div>
+                    <?php if ($title): ?>
+                        <div style="font-size: 10.5px; color: #ff9f43; font-style: italic; margin-top: 5px; background: rgba(255, 159, 67, 0.08); padding: 2px 6px; border-radius: 4px; width: fit-content; border: 1px solid rgba(255, 159, 67, 0.15);">
+                            <?php echo htmlspecialchars($title); ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            <?php } ?>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+</style>
+
 <div class="dashboard-grid">
     <!-- CỘT TRÁI: DỰ ĐOÁN VÀ KẾT QUẢ -->
     <div>
@@ -209,7 +299,7 @@ if (!empty($top_5_ids)) {
                                 <!-- Kèo chấp -->
                                 <div style="text-align: center; margin-bottom: 12px;">
                                     <span style="font-size: 11px; background: rgba(212, 175, 55, 0.1); color: var(--primary); padding: 4px 10px; border-radius: 20px; font-weight: 600; border: 1px solid rgba(212, 175, 55, 0.2); display: inline-flex; align-items: center; gap: 4px;">
-                                        <i class="fa-solid fa-scale-balanced" style="font-size: 10px;"></i> Kèo chấp: 
+                                        <i class="fa-solid fa-scale-balanced" style="font-size: 10px;"></i> Tỷ lệ chấp vui: 
                                         <strong>
                                             <?php 
                                             $hc = (float)($match['handicap'] ?? 0.0);
@@ -321,7 +411,7 @@ if (!empty($top_5_ids)) {
                             
                             <!-- Kèo chấp -->
                             <div style="text-align: center; margin-top: 8px; font-size: 11px; color: var(--text-muted);">
-                                Kèo chấp: 
+                                Tỷ lệ chấp vui: 
                                 <strong style="color: var(--accent);">
                                     <?php 
                                     $hc = (float)($match['handicap'] ?? 0.0);
@@ -373,7 +463,7 @@ if (!empty($top_5_ids)) {
         <!-- Bảng xếp hạng -->
         <div class="card" id="leaderboard-card">
             <div class="card-title" style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
-                <span><i class="fa-solid fa-ranking-star text-primary"></i> Bảng Xếp Hạng Nhóm</span>
+                <span><i class="fa-solid fa-ranking-star text-primary"></i> Bảng Xếp Hạng Vui</span>
                 <button onclick="exportToPDF('pdf-leaderboard-template', 'Bang_Xep_Hang_WorldCup')" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 12px; margin-left: auto;">
                     <i class="fa-solid fa-file-pdf"></i> Xuất PDF
                 </button>
@@ -385,7 +475,7 @@ if (!empty($top_5_ids)) {
                         <tr>
                             <th style="width: 50px; text-align: center;">Hạng</th>
                             <th>Thành viên</th>
-                            <th style="text-align: center; width: 95px;">Thắng/Thua</th>
+                            <th style="text-align: center; width: 95px;">Đúng/Sai</th>
                             <th style="text-align: right; width: 95px;">Tổng Điểm</th>
                         </tr>
                     </thead>

@@ -16,6 +16,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $season = (int)($_POST['season'] ?? 2026);
     $reveal = isset($_POST['reveal_real_names']) ? 1 : 0;
     $site_logo_text = trim($_POST['site_logo_text'] ?? '');
+    $party_fund_total = (int)($_POST['party_fund_total'] ?? 0);
+    $party_fund_target = (int)($_POST['party_fund_target'] ?? 0);
+    $party_fund_sponsors = trim($_POST['party_fund_sponsors'] ?? '');
     
     try {
         save_setting('api_key', $api_key);
@@ -23,6 +26,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         save_setting('season', $season);
         save_setting('reveal_real_names', $reveal);
         save_setting('site_logo_text', $site_logo_text);
+        save_setting('party_fund_total', $party_fund_total);
+        save_setting('party_fund_target', $party_fund_target);
+        save_setting('party_fund_sponsors', $party_fund_sponsors);
         
         $success = "Lưu cấu hình hệ thống thành công!";
     } catch (Exception $e) {
@@ -36,6 +42,9 @@ $league_id = get_setting('league_id', 1);
 $season = get_setting('season', 2026);
 $reveal = get_setting('reveal_real_names', 0);
 $site_logo_text = get_setting('site_logo_text', 'WorldCup <span>Predict</span>');
+$party_fund_total = get_setting('party_fund_total', 1500000);
+$party_fund_target = get_setting('party_fund_target', 3000000);
+$party_fund_sponsors = get_setting('party_fund_sponsors', "Anh Tuấn - 500,000 (Đại Gia Lẩu Bò)\nChị Thảo - 300,000 (Nữ Hoàng Tôm Sú)\nĐức Huy - 200,000 (Chúa Tể Rau Muống)\nMinh Quân - 200,000 (Thần Cồn)");
 
 // Lấy các số liệu thống kê thực tế cho dashboard admin
 $total_users = $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'user'")->fetchColumn();
@@ -147,6 +156,29 @@ $finished_matches_count = $pdo->query("SELECT COUNT(*) FROM matches WHERE status
             <i class="fa-solid fa-circle-info" style="color: var(--primary);"></i> Gợi ý: League ID mặc định của World Cup trong API-Football là <strong>1</strong>. Mùa giải sắp tới sẽ là năm diễn ra (ví dụ: 2026).
         </div>
         <div style="font-weight: 600; font-size: 15px; color: var(--primary); margin: 25px 0 15px 0; border-bottom: 1px solid var(--glass-border); padding-bottom: 5px;">
+            <i class="fa-solid fa-fire-burner"></i> Cấu Hình Quỹ Liên Hoan Hài Hước
+        </div>
+        
+        <div class="grid-2col">
+            <div class="form-group">
+                <label for="party_fund_total">Quỹ Liên Hoan Hiện Tại (VNĐ)</label>
+                <input type="number" name="party_fund_total" id="party_fund_total" class="form-control" value="<?php echo htmlspecialchars($party_fund_total); ?>" required>
+            </div>
+            <div class="form-group">
+                <label for="party_fund_target">Mục Tiêu Quỹ Liên Hoan (VNĐ)</label>
+                <input type="number" name="party_fund_target" id="party_fund_target" class="form-control" value="<?php echo htmlspecialchars($party_fund_target); ?>" required>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="party_fund_sponsors">Danh Sách Mạnh Thường Quân (Format: Tên - Số tiền (Danh hiệu), mỗi người một dòng)</label>
+            <textarea name="party_fund_sponsors" id="party_fund_sponsors" class="form-control" rows="4" style="width: 100%; font-family: monospace; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: white; padding: 10px; border-radius: 8px; box-sizing: border-box; resize: vertical;" placeholder="Ví dụ:&#10;Anh Tuấn - 500,000 (Đại Gia Lẩu Bò)&#10;Chị Thảo - 300,000 (Nữ Hoàng Tôm Sú)"><?php echo htmlspecialchars($party_fund_sponsors); ?></textarea>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+                Định dạng nhập: <code>[Tên Mạnh Thường Quân] - [Số tiền] ([Danh hiệu hài hước])</code>. Ví dụ: <code>Anh Tuấn - 500,000 (Đại Gia Lẩu Bò)</code>.
+            </div>
+        </div>
+
+        <div style="font-weight: 600; font-size: 15px; color: var(--primary); margin: 25px 0 15px 0; border-bottom: 1px solid var(--glass-border); padding-bottom: 5px;">
             Chế Độ Riêng Tư
         </div>
         
@@ -218,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (btnRecalc) {
         btnRecalc.addEventListener('click', () => {
-            if (!confirm('Bạn có chắc chắn muốn tính toán lại toàn bộ điểm số và xếp hạng của tất cả người chơi dựa trên tỷ lệ kèo chấp hiện tại?')) {
+            if (!confirm('Bạn có chắc chắn muốn tính toán lại toàn bộ điểm số và xếp hạng của tất cả người chơi dựa trên tỷ lệ chấp vui hiện tại?')) {
                 return;
             }
             btnRecalc.disabled = true;
