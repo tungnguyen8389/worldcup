@@ -925,9 +925,7 @@ $personal_history = $stmt_pers->fetchAll();
     </div>
 </div>
 
-<?php if ($selected_match): ?>
-    <?php render_match_predictions_pdf($selected_match, $group_predictions, $user_id, $reveal_real_names); ?>
-<?php endif; ?>
+
 
 <?php
 require_once __DIR__ . '/includes/footer.php';

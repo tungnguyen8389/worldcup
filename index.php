@@ -531,8 +531,8 @@ if (!empty($top_5_ids)) {
     </div>
 </div>
 
-<?php render_leaderboard_pdf($ranked_leaderboard, $user_id, $reveal_real_names, $prev_ranks); ?>
+
 
 <?php
 require_once __DIR__ . '/includes/footer.php';
-?>
+?>

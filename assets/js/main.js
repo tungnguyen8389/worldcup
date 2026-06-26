@@ -562,64 +562,314 @@ function setupNumericKeypad() {
 }
 
 // Chức năng xuất PDF từ một Element HTML
-window.exportToPDF = function(elementId, filename) {
-    const element = document.getElementById(elementId);
-    if (!element) {
-        alert('Không tìm thấy dữ liệu để xuất PDF!');
-        return;
+// Hàm hiển thị modal xem trước bản in PDF
+window.showPreviewModal = function(htmlContent, filename) {
+    // 1. Tạo style sheet nếu chưa tồn tại
+    if (!document.getElementById('pdf-preview-modal-styles')) {
+        const style = document.createElement('style');
+        style.id = 'pdf-preview-modal-styles';
+        style.innerHTML = `
+            .pdf-preview-modal {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.85);
+                z-index: 99999;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+                font-family: 'Be Vietnam Pro', 'Inter', sans-serif;
+            }
+            .pdf-preview-modal.show {
+                opacity: 1;
+            }
+            .pdf-preview-content-wrapper {
+                width: 92%;
+                max-width: 900px;
+                height: 90%;
+                background: #0e1911;
+                border: 1px solid #1f3525;
+                border-radius: 12px;
+                display: flex;
+                flex-direction: column;
+                box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+                transform: translateY(20px);
+                transition: transform 0.3s ease;
+                overflow: hidden;
+            }
+            .pdf-preview-modal.show .pdf-preview-content-wrapper {
+                transform: translateY(0);
+            }
+            .pdf-preview-header {
+                padding: 15px 20px;
+                background: #08100a;
+                border-bottom: 1px solid #1f3525;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                color: #fff;
+            }
+            .pdf-preview-title {
+                font-size: 15px;
+                font-weight: 700;
+                margin: 0;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                color: #e5f0ea;
+            }
+            .pdf-preview-close {
+                background: none;
+                border: none;
+                color: #a0b2a6;
+                font-size: 24px;
+                cursor: pointer;
+                transition: color 0.2s;
+                line-height: 1;
+            }
+            .pdf-preview-close:hover {
+                color: #fff;
+            }
+            .pdf-preview-body {
+                flex: 1;
+                padding: 20px;
+                background: #050a06;
+                overflow-y: auto;
+                display: flex;
+                justify-content: center;
+                align-items: flex-start;
+            }
+            .pdf-preview-paper-container {
+                width: 800px;
+                background: #ffffff;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+                border-radius: 4px;
+                box-sizing: border-box;
+                overflow: hidden;
+            }
+            #pdf-preview-modal-paper .pdf-only {
+                display: block !important;
+            }
+            .pdf-preview-footer {
+                padding: 15px 20px;
+                background: #08100a;
+                border-top: 1px solid #1f3525;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            .pdf-btn {
+                padding: 8px 18px;
+                border-radius: 6px;
+                font-size: 13px;
+                font-weight: 600;
+                cursor: pointer;
+                border: none;
+                transition: all 0.2s;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                text-decoration: none;
+            }
+            .pdf-btn-secondary {
+                background: #1f3525;
+                color: #a0b2a6;
+            }
+            .pdf-btn-secondary:hover {
+                background: #2c4d36;
+                color: #fff;
+            }
+            .pdf-btn-primary {
+                background: #aa8414;
+                color: #fff;
+            }
+            .pdf-btn-primary:hover {
+                background: #cfa320;
+                box-shadow: 0 0 10px rgba(170, 132, 20, 0.4);
+            }
+        `;
+        document.head.appendChild(style);
     }
     
+    // 2. Dọn dẹp modal cũ nếu có
+    const oldModal = document.getElementById('pdf-preview-modal-el');
+    if (oldModal) {
+        oldModal.remove();
+    }
+    
+    // 3. Tạo modal mới
+    const modal = document.createElement('div');
+    modal.id = 'pdf-preview-modal-el';
+    modal.className = 'pdf-preview-modal';
+    modal.innerHTML = `
+        <div class="pdf-preview-content-wrapper">
+            <div class="pdf-preview-header">
+                <h3 class="pdf-preview-title">
+                    <i class="fa-solid fa-eye" style="color: #aa8414;"></i> Xem trước bản in PDF
+                </h3>
+                <button type="button" class="pdf-preview-close" onclick="closePDFPreview()">&times;</button>
+            </div>
+            <div class="pdf-preview-body">
+                <div id="pdf-preview-modal-paper" class="pdf-preview-paper-container">
+                    ${htmlContent}
+                </div>
+            </div>
+            <div class="pdf-preview-footer">
+                <button type="button" class="pdf-btn pdf-btn-secondary" onclick="closePDFPreview()">Đóng</button>
+                <button type="button" class="pdf-btn pdf-btn-primary" id="pdf-modal-download-btn">
+                    <i class="fa-solid fa-file-pdf"></i> Tải file PDF
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Trigger show animation
+    setTimeout(() => {
+        modal.classList.add('show');
+    }, 10);
+    
+    // Bắt sự kiện nút tải file
+    document.getElementById('pdf-modal-download-btn').addEventListener('click', function() {
+        const paper = document.getElementById('pdf-preview-modal-paper');
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        
+        // Tạo container tạm khớp với scrollTop hiện tại để tránh lỗi cuộn trang của html2canvas
+        const tempExportDiv = document.createElement('div');
+        tempExportDiv.id = 'pdf-export-temp-container';
+        tempExportDiv.style.position = 'absolute';
+        tempExportDiv.style.left = '0';
+        tempExportDiv.style.top = scrollTop + 'px';
+        tempExportDiv.style.width = '800px';
+        tempExportDiv.style.zIndex = '-9999';
+        tempExportDiv.style.background = '#ffffff';
+        
+        // Thêm rule CSS đặc biệt cho container tạm
+        const tempExportStyle = document.createElement('style');
+        tempExportStyle.innerHTML = `
+            #pdf-export-temp-container .pdf-only {
+                display: block !important;
+            }
+        `;
+        
+        document.body.appendChild(tempExportStyle);
+        document.body.appendChild(tempExportDiv);
+        
+        // Sao chép nội dung từ khung xem trước sang container tạm
+        tempExportDiv.innerHTML = paper.innerHTML;
+        
+        // Ép hiển thị toàn bộ phần tử cược ẩn bằng cách bỏ class pdf-only và gán display block
+        const pdfOnly = tempExportDiv.querySelectorAll('.pdf-only');
+        pdfOnly.forEach(el => {
+            el.classList.remove('pdf-only');
+            el.style.setProperty('display', 'block', 'important');
+        });
+        
+        const opt = {
+            margin:       0,
+            filename:     filename + '.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { 
+                scale: 2, 
+                useCORS: true,
+                logging: false,
+                letterRendering: true,
+                backgroundColor: '#ffffff',
+                windowWidth: 800,
+                scrollY: scrollTop,
+                scrollX: 0
+            },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        
+        showToast('Đang tạo và tải file PDF...', 'success');
+        
+        html2pdf().set(opt).from(tempExportDiv).save().then(() => {
+            document.body.removeChild(tempExportDiv);
+            document.body.removeChild(tempExportStyle);
+            closePDFPreview();
+        }).catch(err => {
+            console.error('Lỗi xuất PDF:', err);
+            alert('Có lỗi xảy ra khi xuất PDF!');
+            document.body.removeChild(tempExportDiv);
+            document.body.removeChild(tempExportStyle);
+        });
+    });
+};
+
+// Hàm đóng modal xem trước
+window.closePDFPreview = function() {
+    const modal = document.getElementById('pdf-preview-modal-el');
+    if (modal) {
+        modal.classList.remove('show');
+        setTimeout(() => {
+            modal.remove();
+        }, 300); // Đợi kết thúc hiệu ứng transition rồi mới xóa khỏi DOM
+    }
+};
+
+// Chức năng xuất PDF chính có xem trước
+window.exportToPDF = function(elementId, filename) {
     // Kiểm tra xem thư viện html2pdf có sẵn không
     if (typeof html2pdf === 'undefined') {
         alert('Thư viện html2pdf chưa được tải hoàn tất hoặc bị chặn! Vui lòng tải lại trang hoặc kiểm tra bộ nhớ đệm trình duyệt.');
         return;
     }
     
-    // Lưu lại vị trí ban đầu trong DOM để khôi phục sau
-    const originalParent = element.parentNode;
-    const originalNextSibling = element.nextSibling;
-    
-    // Đưa element ra ngoài body để tránh ảnh hưởng bởi layout flex/relative/grid của container cha
-    document.body.appendChild(element);
-    
-    // Thêm class tạm thời để tối ưu hóa hiển thị khi xuất PDF
-    element.classList.add('pdf-exporting');
-    
-    const opt = {
-        margin:       0,
-        filename:     filename + '.pdf',
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { 
-            scale: 2, 
-            useCORS: true,
-            logging: false,
-            letterRendering: true,
-            backgroundColor: '#ffffff',
-            windowWidth: 1200
-        },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-    
-    // Đợi 150ms để trình duyệt hoàn tất việc render lại CSS (display: block)
-    setTimeout(() => {
-        html2pdf().set(opt).from(element).save().then(() => {
-            element.classList.remove('pdf-exporting');
-            // Khôi phục lại vị trí cũ trong DOM
-            if (originalNextSibling) {
-                originalParent.insertBefore(element, originalNextSibling);
+    // Kiểm tra các trường hợp đặc biệt để tải dữ liệu độc lập qua AJAX API
+    if (elementId === 'pdf-match-predictions-template' || elementId === 'pdf-leaderboard-template') {
+        // Tự động điều chỉnh đường dẫn API nếu đang chạy trong thư mục admin/
+        const apiPrefix = window.location.pathname.includes('/admin/') ? '../' : '';
+        let apiUrl = '';
+        
+        if (elementId === 'pdf-match-predictions-template') {
+            let matchId = '';
+            // Ưu tiên lấy từ select dropdown của bộ lọc trên màn hình
+            const matchSelect = document.querySelector('select[name="match_id"]');
+            if (matchSelect) {
+                matchId = matchSelect.value;
             } else {
-                originalParent.appendChild(element);
+                // Fallback lấy từ tham số URL
+                const urlParams = new URLSearchParams(window.location.search);
+                matchId = urlParams.get('match_id');
             }
-        }).catch(err => {
-            console.error('Lỗi xuất PDF:', err);
-            alert('Có lỗi xảy ra khi xuất PDF!');
-            element.classList.remove('pdf-exporting');
-            // Khôi phục lại vị trí cũ trong DOM
-            if (originalNextSibling) {
-                originalParent.insertBefore(element, originalNextSibling);
-            } else {
-                originalParent.appendChild(element);
+            // Nếu không tìm thấy, gửi 0 để API tự nhận diện trận đấu mặc định
+            if (!matchId) {
+                matchId = 0;
             }
-        });
-    }, 150);
+            apiUrl = `${apiPrefix}api/get_pdf_template.php?type=match_predictions&match_id=${matchId}`;
+        } else {
+            apiUrl = `${apiPrefix}api/get_pdf_template.php?type=leaderboard`;
+        }
+        
+        showToast('Đang tải dữ liệu xem trước...', 'success');
+        
+        fetch(apiUrl)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    window.showPreviewModal(data.html, filename);
+                } else {
+                    alert('Lỗi tải dữ liệu xuất PDF: ' + data.message);
+                }
+            })
+            .catch(err => {
+                console.error('Lỗi API xuất PDF:', err);
+                alert('Không thể kết nối đến máy chủ để xuất PDF!');
+            });
+            
+    } else {
+        // Fallback cho các thẻ thông thường có sẵn trong DOM (Ví dụ: danh sách thành viên admin)
+        const element = document.getElementById(elementId);
+        if (!element) {
+            alert('Không tìm thấy dữ liệu để xuất PDF!');
+            return;
+        }
+        window.showPreviewModal(element.innerHTML, filename);
+    }
 };
