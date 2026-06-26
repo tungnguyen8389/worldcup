@@ -116,7 +116,10 @@ $percentile = count($all_pts) > 1 ? round($above_avg/(count($all_pts)-1)*100) : 
 <div class="card" style="background:linear-gradient(135deg, rgba(212,175,55,.08), rgba(0,136,85,.05)); margin-bottom:20px;">
     <div style="display:flex; align-items:center; gap:20px; flex-wrap:wrap;">
         <div style="width:70px; height:70px; border-radius:50%; background:var(--primary-grad); display:flex; align-items:center; justify-content:center; font-size:30px; font-weight:800; color:#000; flex-shrink:0;">
-            <?= mb_strtoupper(mb_substr($me['nickname'],0,1)) ?>
+            <?php 
+            $fc = function_exists('mb_substr') ? mb_substr($me['nickname'],0,1) : substr($me['nickname'],0,1);
+            echo htmlspecialchars(function_exists('mb_strtoupper') ? mb_strtoupper($fc) : strtoupper($fc)); 
+            ?>
         </div>
         <div style="flex:1;">
             <div style="font-size:22px; font-weight:800; color:var(--text-main);"><?= htmlspecialchars($me['nickname']) ?></div>
