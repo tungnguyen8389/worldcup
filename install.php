@@ -66,12 +66,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                              "define('DB_PASS', '$pass');\n" .
                              "define('DB_NAME', '$dbname');\n\n" .
                              "try {\n" .
-                             "    \$pdo = new PDO(\"mysql:host=\" . DB_HOST . \";dbname=\" . DB_NAME . \";charset=utf8mb4\", DB_USER, DB_PASS, [\n" .
-                             "        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,\n" .
-                             "        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,\n" .
-                             "        PDO::ATTR_EMULATE_PREPARES => false,\n" .
-                             "    ]);\n" .
+                             "    if (class_exists('PDO')) {\n" .
+                             "        \$pdo = new PDO(\"mysql:host=\" . DB_HOST . \";dbname=\" . DB_NAME . \";charset=utf8mb4\", DB_USER, DB_PASS, [\n" .
+                             "            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,\n" .
+                             "            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,\n" .
+                             "            PDO::ATTR_EMULATE_PREPARES => false,\n" .
+                             "        ]);\n" .
+                             "    } else {\n" .
+                             "        \$pdo = null;\n" .
+                             "    }\n" .
                              "} catch (PDOException \$e) {\n" .
+                             "    \$pdo = null;\n" .
+                             "} catch (Throwable \$e) {\n" .
                              "    \$pdo = null;\n" .
                              "}\n";
             
