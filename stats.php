@@ -80,7 +80,9 @@ $all_users = $pdo->query("
 ")->fetchAll();
 $all_pts = array_column($all_users,'tp');
 $avg_pts = count($all_pts) > 0 ? round(array_sum($all_pts)/count($all_pts),1) : 0;
-$above_avg = count(array_filter($all_pts, fn($x) => $x < $s['total_pts']));
+$above_avg = count(array_filter($all_pts, function($x) use ($s) {
+    return $x < $s['total_pts'];
+}));
 $percentile = count($all_pts) > 1 ? round($above_avg/(count($all_pts)-1)*100) : 100;
 ?>
 
