@@ -67,7 +67,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                             <a href="<?php echo $path_prefix; ?>index.php"><i class="fa-solid fa-house-chimney"></i> Trang chủ</a>
                         </li>
                         <li class="<?php echo $current_page == 'predictions.php' ? 'active' : ''; ?>">
-                            <a href="<?php echo $path_prefix; ?>predictions.php"><i class="fa-solid fa-chart-line"></i> Lịch sử dự đoán</a>
+                            <a href="<?php echo $path_prefix; ?>predictions.php"><i class="fa-solid fa-chart-line"></i> Lịch sử</a>
                         </li>
                         <li class="<?php echo $current_page == 'stats.php' ? 'active' : ''; ?>">
                             <a href="<?php echo $path_prefix; ?>stats.php"><i class="fa-solid fa-chart-bar"></i> Thống kê</a>
@@ -77,18 +77,19 @@ $current_page = basename($_SERVER['PHP_SELF']);
                         </li>
                         <?php if (is_admin()): ?>
                             <li class="<?php echo strpos($_SERVER['SCRIPT_NAME'], '/admin/') !== false ? 'active' : ''; ?>">
-                                <a href="<?php echo $path_prefix; ?>admin/dashboard.php" class="btn-admin"><i class="fa-solid fa-user-gear"></i> Admin Panel</a>
+                                <a href="<?php echo $path_prefix; ?>admin/dashboard.php" class="btn-admin"><i class="fa-solid fa-user-gear"></i> Admin</a>
                             </li>
                         <?php endif; ?>
                     </ul>
                     
-                    <div class="user-menu">
-                        <div class="user-info">
-                            Xin chào, <strong><?php echo htmlspecialchars($_SESSION['nickname']); ?></strong>
+                    <div class="user-menu" style="display: flex; align-items: center; gap: 15px;">
+                        <a href="<?php echo $path_prefix; ?>profile.php" class="user-info" style="color: var(--text-main); text-decoration: none; display: inline-flex; align-items: center; gap: 6px;" title="Xem Hồ Sơ">
+                            <i class="fa-regular fa-circle-user" style="font-size: 17px; color: var(--primary);"></i>
+                            <span><strong><?php echo htmlspecialchars($_SESSION['nickname']); ?></strong></span>
                             <?php if (is_admin()): ?>
-                                <span class="badge" style="background: var(--primary); color: #06150e; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-left: 5px;">Admin</span>
+                                <span class="badge" style="background: var(--primary); color: #06150e; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">Admin</span>
                             <?php endif; ?>
-                        </div>
+                        </a>
                         <a href="<?php echo $path_prefix; ?>logout.php" class="btn btn-secondary btn-sm" style="padding: 6px 12px;"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</a>
                     </div>
                 </div>
